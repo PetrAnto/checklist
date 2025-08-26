@@ -1,0 +1,461 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Airdrop Farming Tracker</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body { background: #f7f9fb; }
+    .table thead th { vertical-align: middle; text-align: center; }
+    .project-cell a { text-decoration: underline; }
+    .status-box {
+      width: 26px; height: 26px; border-radius: 4px; border: 1px solid rgba(0,0,0,.08);
+      display: inline-block;
+    }
+    .status-green { background: #2ecc71; }
+    .status-yellow { background: #f1c40f; }
+    .status-red { background: #e74c3c; }
+    .legend .status-box { width: 18px; height: 18px; vertical-align: text-bottom; }
+    .subhead { font-size: .85rem; color: #6c757d; }
+    .sticky-top-bg { background: #fff; box-shadow: 0 2px 12px rgba(0,0,0,.04); }
+    .controls .btn { margin-right: .5rem; }
+    .today-col { width: 72px; text-align: center; }
+    .history-col { width: 32px; text-align: center; }
+    .project-col { min-width: 220px; }
+    .note-badge { font-size: .70rem; }
+    .form-check-input[readonly] { pointer-events: none; }
+    .nowrap { white-space: nowrap; }
+    .code-badge { cursor: pointer; }
+    .table-responsive { overflow-x: auto; }
+  </style>
+</head>
+<body>
+
+  <div class="container-fluid py-4">
+    <div class="d-flex align-items-center justify-content-between mb-3 sticky-top sticky-top-bg px-2 py-2 rounded-3">
+      <div>
+        <h1 class="h4 mb-0">Airdrop Farming Tracker</h1>
+        <div class="subhead">Auto-tick on link click • Manual confirmation for farming • Stored locally in your browser</div>
+      </div>
+      <div class="controls">
+        <button id="resetTodayBtn" class="btn btn-outline-secondary btn-sm">Reset today</button>
+        <button id="resetAllBtn" class="btn btn-outline-danger btn-sm">Reset all</button>
+        <button id="exportBtn" class="btn btn-outline-primary btn-sm">Export</button>
+        <label class="btn btn-outline-primary btn-sm mb-0">
+          Import <input id="importInput" type="file" accept="application/json" hidden>
+        </label>
+      </div>
+    </div>
+
+    <div class="table-responsive">
+      <table id="trackerTable" class="table table-bordered align-middle bg-white">
+        <thead id="trackerHead"></thead>
+        <tbody id="trackerBody"></tbody>
+      </table>
+    </div>
+
+    <div class="legend mt-3">
+      <span class="me-3"><span class="status-box status-red me-1"></span> No click and no farm</span>
+      <span class="me-3"><span class="status-box status-yellow me-1"></span> Click but no farm confirmed</span>
+      <span class="me-3"><span class="status-box status-green me-1"></span> Click and farm OK</span>
+    </div>
+
+    <div class="mt-4 text-muted small">
+      <strong>Notes:</strong> “Click” is read-only and checks automatically when you open a project link. “Farm” is manual. History tiles
+      summarize activity stored for each period. All data is kept locally in your browser (LocalStorage).
+    </div>
+  </div>
+
+  <!-- Toasts -->
+  <div class="position-fixed bottom-0 end-0 p-3" style="z-index:1080">
+    <div id="toast" class="toast align-items-center text-bg-dark border-0" role="alert" aria-live="assertive" aria-atomic="true">
+      <div class="d-flex">
+        <div class="toast-body" id="toastBody">Done</div>
+        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ---------- Config ----------
+    const PROJECTS = [
+      { key: 'fantasyTop',   name: 'FantasyTop',           url: 'https://fantasy.top?ref=petranto12' },
+      { key: 'cookieFun',    name: 'Cookie.fun',           url: 'https://www.cookie.fun/profile' },
+      { key: 'kaito',        name: 'Kaito (Yaps)',         url: 'https://yaps.kaito.ai/referral/1382662710396080133' },
+      { key: 'galxe',        name: 'Galxe',                url: 'https://app.galxe.com/hub/invite?code=GICyJr43Nj1NJrZqi4fhOdcjt4V_avTgEEJxuu-AC0=' },
+      { key: 'klout',        name: 'Klout.gg',             url: 'https://klout.gg/', referralNote: 'Referral: “petranto 🧬”', copyText: 'petranto 🧬' },
+      { key: 'wallchain',    name: 'Wallchain (Quacks)',   url: 'https://quacks.app/?ref=PetrAnto12' },
+      { key: 'ethos',        name: 'Ethos',                url: 'https://app.ethos.network/' },
+      { key: 'fundamental',  name: 'Fundamental.lol',      url: 'https://fundamental.lol/r/?node=PetrAnto12-5mu' },
+      { key: 'addicted',     name: 'Addicted.fun',         url: 'https://addicted.fun', referralNote: 'Invite code', copyText: 'IHMJC4DK' },
+      { key: 'addplus',      name: 'AddPlus.org',          url: 'https://addplus.org/boost/PetrAnto12' },
+    ];
+
+    const STORAGE_KEY = 'airdropTracker.v2';
+
+    // Period sizes
+    const PAST_DAYS = 7;
+    const PAST_WEEKS = 4;
+    const PAST_MONTHS = 3;
+    const PAST_QUARTERS = 3;
+
+    // ---------- Utilities ----------
+    const pad = n => String(n).padStart(2, '0');
+    const today = () => {
+      const d = new Date();
+      return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+    };
+    const addDays = (d, delta) => {
+      const nd = new Date(d);
+      nd.setDate(nd.getDate()+delta);
+      return nd;
+    };
+    const fmtDayCol = (d) => {
+      const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+      return `${pad(d.getDate())}-${months[d.getMonth()]}`;
+    };
+    const getISOWeek = (d) => {
+      // ISO week (1-53)
+      const date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+      const dayNum = date.getUTCDay() || 7;
+      date.setUTCDate(date.getUTCDate() + 4 - dayNum);
+      const yearStart = new Date(Date.UTC(date.getUTCFullYear(),0,1));
+      return Math.ceil((((date - yearStart) / 86400000) + 1)/7);
+    };
+    const quarterOf = (d) => Math.floor(d.getMonth()/3) + 1;
+
+    // Date sequences (excluding today for history)
+    const lastNDays = (n) => Array.from({length:n}, (_,i) => addDays(new Date(), -(i+1))).reverse();
+    const lastNWeeks = (n) => {
+      const res = [];
+      const now = new Date();
+      for (let i=1;i<=n;i++){
+        const end = addDays(now, -7*(i-1));
+        const start = addDays(now, -7*i);
+        res.unshift({start, end});
+      }
+      return res;
+    };
+    const lastNMonths = (n) => {
+      const res = [];
+      const now = new Date();
+      for (let i=1;i<=n;i++){
+        const ref = new Date(now.getFullYear(), now.getMonth()-i, 1);
+        const start = new Date(ref.getFullYear(), ref.getMonth(), 1);
+        const end = new Date(ref.getFullYear(), ref.getMonth()+1, 1);
+        res.unshift({start, end, label: start.toLocaleString('en', {month:'long'})});
+      }
+      return res;
+    };
+    const lastNQuarters = (n) => {
+      const res = [];
+      const now = new Date();
+      let q = quarterOf(now) - 1; // exclude current quarter
+      let y = now.getFullYear();
+      for (let i=0;i<n;i++){
+        if (q === 0){ q = 4; y -= 1; }
+        const startMonth = (q-1)*3;
+        const start = new Date(y, startMonth, 1);
+        const end = new Date(y, startMonth+3, 1);
+        res.unshift({start, end, label: `Q${q}-${String(y).slice(-2)}`});
+        q -= 1;
+      }
+      return res;
+    };
+
+    // Storage helpers
+    const load = () => {
+      try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}; }
+      catch { return {}; }
+    };
+    const save = (data) => localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+
+    const ensureProj = (data, key) => {
+      if(!data[key]) data[key] = { daily:{} };
+      return data[key];
+    };
+
+    const setTodayState = (key, patch) => {
+      const data = load();
+      const proj = ensureProj(data, key);
+      const t = today();
+      if(!proj.daily[t]) proj.daily[t] = { clicked:false, farmed:false };
+      Object.assign(proj.daily[t], patch);
+      save(data);
+    };
+
+    const getDayState = (key, dateStr) => {
+      const data = load();
+      return (data[key] && data[key].daily && data[key].daily[dateStr]) || { clicked:false, farmed:false };
+    };
+
+    const stateToColor = (s) => {
+      if (s.farmed && s.clicked) return 'green';
+      if (s.clicked && !s.farmed) return 'yellow';
+      return 'red';
+    };
+
+    const aggregateRange = (key, start, end) => {
+      // [start, end) by day
+      const d = new Date(start);
+      let anyClick = false, anyFarm = false;
+      while (d < end){
+        const ds = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+        const s = getDayState(key, ds);
+        anyClick = anyClick || s.clicked;
+        anyFarm = anyFarm || (s.clicked && s.farmed);
+        d.setDate(d.getDate()+1);
+      }
+      if (anyFarm) return 'green';
+      if (anyClick) return 'yellow';
+      return 'red';
+    };
+
+    // ---------- Rendering ----------
+    const headEl = document.getElementById('trackerHead');
+    const bodyEl = document.getElementById('trackerBody');
+
+    const renderHead = () => {
+      headEl.innerHTML = '';
+      const days = lastNDays(PAST_DAYS);
+      const weeks = lastNWeeks(PAST_WEEKS);
+      const months = lastNMonths(PAST_MONTHS);
+      const quarters = lastNQuarters(PAST_QUARTERS);
+
+      const tr1 = document.createElement('tr');
+      tr1.innerHTML = `
+        <th rowspan="2" class="project-col"> </th>
+        <th colspan="2">Today</th>
+        <th colspan="${days.length}">Past 7 days</th>
+        <th colspan="${weeks.length}">Past weeks</th>
+        <th colspan="${months.length}">Past Months</th>
+        <th colspan="${quarters.length}">Past Quarters</th>
+      `;
+      const tr2 = document.createElement('tr');
+      tr2.innerHTML = `
+        <th class="today-col">Click</th>
+        <th class="today-col">Farm</th>
+        ${days.map(d => `<th class="history-col">${fmtDayCol(d)}</th>`).join('')}
+        ${weeks.map(w => {
+          const cw = getISOWeek(addDays(w.end, -1));
+          return `<th class="history-col">CW${cw}</th>`;
+        }).join('')}
+        ${months.map(m => `<th class="history-col">${m.label}</th>`).join('')}
+        ${quarters.map(q => `<th class="history-col">${q.label}</th>`).join('')}
+      `;
+      headEl.appendChild(tr1);
+      headEl.appendChild(tr2);
+    };
+
+    const renderBody = () => {
+      bodyEl.innerHTML = '';
+      const days = lastNDays(PAST_DAYS);
+      const weeks = lastNWeeks(PAST_WEEKS);
+      const months = lastNMonths(PAST_MONTHS);
+      const quarters = lastNQuarters(PAST_QUARTERS);
+
+      PROJECTS.forEach(p => {
+        const tr = document.createElement('tr');
+
+        // Project cell with link + optional copy badge
+        const projectCell = document.createElement('td');
+        projectCell.className = 'project-cell';
+        const a = document.createElement('a');
+        a.href = p.url;
+        a.textContent = p.name;
+        a.target = '_blank';
+        a.rel = 'noopener';
+        a.addEventListener('click', () => {
+          // auto-check click
+          setTodayState(p.key, { clicked: true });
+          const cb = document.querySelector(`#click-${p.key}`);
+          if (cb) { cb.checked = true; }
+          updateHistoryCellsForRow(p.key, tr);
+        });
+        projectCell.appendChild(a);
+
+        if (p.referralNote || p.copyText){
+          const span = document.createElement('span');
+          span.className = 'badge rounded-pill text-bg-secondary ms-2 note-badge code-badge';
+          span.title = p.referralNote || 'Code';
+          span.textContent = p.referralNote || 'Code';
+          span.addEventListener('click', async () => {
+            if (p.copyText) {
+              try { await navigator.clipboard.writeText(p.copyText); showToast(`Copied: ${p.copyText}`); }
+              catch { showToast('Copy failed'); }
+            }
+          });
+          projectCell.appendChild(span);
+        }
+
+        tr.appendChild(projectCell);
+
+        // Today: Click (read-only)
+        const tdClick = document.createElement('td');
+        tdClick.className = 'text-center';
+        const cbClick = document.createElement('input');
+        cbClick.type = 'checkbox';
+        cbClick.className = 'form-check-input';
+        cbClick.id = `click-${p.key}`;
+        cbClick.setAttribute('readonly', 'readonly'); // prevent manual toggle
+        // initialize
+        cbClick.checked = getDayState(p.key, today()).clicked;
+        tdClick.appendChild(cbClick);
+        tr.appendChild(tdClick);
+
+        // Today: Farm (manual)
+        const tdFarm = document.createElement('td');
+        tdFarm.className = 'text-center';
+        const cbFarm = document.createElement('input');
+        cbFarm.type = 'checkbox';
+        cbFarm.className = 'form-check-input';
+        cbFarm.id = `farm-${p.key}`;
+        cbFarm.checked = getDayState(p.key, today()).farmed;
+        cbFarm.addEventListener('change', () => {
+          setTodayState(p.key, { farmed: cbFarm.checked });
+          updateHistoryCellsForRow(p.key, tr);
+        });
+        tdFarm.appendChild(cbFarm);
+        tr.appendChild(tdFarm);
+
+        // Past 7 days
+        days.forEach(d => {
+          const ds = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+          const s = getDayState(p.key, ds);
+          tr.appendChild(makeStatusCell(stateToColor(s)));
+        });
+
+        // Past weeks
+        weeks.forEach(w => {
+          tr.appendChild(makeStatusCell(aggregateRange(p.key, w.start, w.end)));
+        });
+
+        // Past months
+        months.forEach(m => {
+          tr.appendChild(makeStatusCell(aggregateRange(p.key, m.start, m.end)));
+        });
+
+        // Past quarters
+        quarters.forEach(q => {
+          tr.appendChild(makeStatusCell(aggregateRange(p.key, q.start, q.end)));
+        });
+
+        bodyEl.appendChild(tr);
+      });
+    };
+
+    const makeStatusCell = (color) => {
+      const td = document.createElement('td');
+      td.className = 'text-center';
+      const div = document.createElement('div');
+      div.className = `status-box status-${color}`;
+      td.appendChild(div);
+      return td;
+    };
+
+    const updateHistoryCellsForRow = (key, tr) => {
+      // Recompute just the history cells for this row
+      const days = lastNDays(PAST_DAYS);
+      const weeks = lastNWeeks(PAST_WEEKS);
+      const months = lastNMonths(PAST_MONTHS);
+      const quarters = lastNQuarters(PAST_QUARTERS);
+
+      // Columns: [project, click, farm] + all histories
+      let colIndex = 3; // first history cell index
+      // days
+      days.forEach(d => {
+        const ds = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+        const s = getDayState(key, ds);
+        setCellColor(tr.cells[colIndex++], stateToColor(s));
+      });
+      // weeks
+      weeks.forEach(w => {
+        setCellColor(tr.cells[colIndex++], aggregateRange(key, w.start, w.end));
+      });
+      // months
+      months.forEach(m => {
+        setCellColor(tr.cells[colIndex++], aggregateRange(key, m.start, m.end));
+      });
+      // quarters
+      quarters.forEach(q => {
+        setCellColor(tr.cells[colIndex++], aggregateRange(key, q.start, q.end));
+      });
+    };
+
+    const setCellColor = (td, color) => {
+      const box = td.querySelector('.status-box');
+      if (!box) return;
+      box.classList.remove('status-green','status-yellow','status-red');
+      box.classList.add(`status-${color}`);
+    };
+
+    // ---------- Controls ----------
+    const showToast = (msg) => {
+      const tb = document.getElementById('toastBody');
+      tb.textContent = msg;
+      const toast = new bootstrap.Toast(document.getElementById('toast'));
+      toast.show();
+    };
+
+    document.getElementById('resetTodayBtn').addEventListener('click', () => {
+      const data = load();
+      const t = today();
+      PROJECTS.forEach(p => {
+        if (data[p.key]?.daily?.[t]) {
+          data[p.key].daily[t] = { clicked:false, farmed:false };
+        }
+      });
+      save(data);
+      // update UI
+      PROJECTS.forEach(p => {
+        const c1 = document.getElementById(`click-${p.key}`);
+        const c2 = document.getElementById(`farm-${p.key}`);
+        if (c1) c1.checked = false;
+        if (c2) c2.checked = false;
+      });
+      renderBody();
+      showToast('Today reset.');
+    });
+
+    document.getElementById('resetAllBtn').addEventListener('click', () => {
+      if (!confirm('This will erase ALL saved history for this tracker. Continue?')) return;
+      localStorage.removeItem(STORAGE_KEY);
+      renderBody();
+      showToast('All data cleared.');
+    });
+
+    document.getElementById('exportBtn').addEventListener('click', () => {
+      const blob = new Blob([localStorage.getItem(STORAGE_KEY) || '{}'], {type:'application/json'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `airdrop-tracker-${today()}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+
+    document.getElementById('importInput').addEventListener('change', async (e) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+      const text = await file.text();
+      try {
+        JSON.parse(text); // validation
+        localStorage.setItem(STORAGE_KEY, text);
+        renderBody();
+        showToast('Import successful.');
+      } catch {
+        showToast('Invalid JSON file.');
+      } finally {
+        e.target.value = '';
+      }
+    });
+
+    // ---------- Init ----------
+    renderHead();
+    renderBody();
+  </script>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
