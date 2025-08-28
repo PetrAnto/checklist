@@ -39,7 +39,7 @@
     .desc-col { width: 280px; color: var(--muted); font-size: .9rem; }
     .today-col { width: 72px; text-align: center; }
     .history-col { width: 40px; text-align: center; }
-    .table-responsive { overflow-x: auto; } /* plein écran mais scroll horizontal si besoin */
+    .table-responsive { overflow-x: auto; } /* full-width with horizontal scroll if needed */
 
     .status-box {
       width: 26px; height: 26px; border-radius: 4px; border: 1px solid rgba(255,255,255,.06);
@@ -55,15 +55,31 @@
     .code-badge { cursor: pointer; }
     .controls .btn { margin-right: .5rem; }
 
-    /* --------- Banner: pas de recadrage, image entière visible --------- */
-    .banner-wrap { margin: 12px 0 10px; border-radius: 12px; overflow: hidden; border: 1px solid var(--border); background: #000; }
-    .banner-wrap img { width: 100%; height: auto; display: block; } /* pas de object-fit ni max-height -> aucune coupe */
+    /* --------- Banner: centered, ≈2/3 width on desktop; full width on mobile --------- */
+    .banner-wrap{
+      margin: 12px auto 10px;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      background: #000;
+
+      width: 66vw;           /* ~ two-thirds of viewport width */
+      max-width: 1400px;     /* safety cap */
+    }
+    .banner-wrap img{
+      width: 100%;
+      height: auto;          /* no cropping */
+      display: block;
+    }
+    @media (max-width: 991.98px){
+      .banner-wrap{ width: 100%; }
+    }
   </style>
 </head>
 <body>
   <div class="container-fluid py-3">
 
-    <!-- Bannière : se masque si banner.png absent -->
+    <!-- Banner: auto-hides if banner.png is missing -->
     <div class="banner-wrap">
       <img src="banner.png" alt="Banner" onerror="this.closest('.banner-wrap').remove();">
     </div>
@@ -97,8 +113,8 @@
     </div>
 
     <div class="mt-4" style="color:var(--muted); font-size:.9rem;">
-      <strong>Notes :</strong> “Click” se coche automatiquement lorsque vous ouvrez le lien. “Farm” est manuel.
-      L’historique semaines/mois/trimestres est dérivé des enregistrements journaliers sauvegardés localement.
+      <strong>Notes:</strong> “Click” auto-checks when opening the link; “Farm” is manual.
+      Week/Month/Quarter tiles are derived from locally stored daily data.
     </div>
   </div>
 
