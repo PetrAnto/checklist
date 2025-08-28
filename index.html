@@ -57,31 +57,46 @@
 
     /* --------- Banner: centered, ≈2/3 width on desktop; full width on mobile --------- */
     .banner-wrap{
-      margin: 12px auto 10px;
+      margin: 12px auto 6px;
       border-radius: 12px;
       overflow: hidden;
       border: 1px solid var(--border);
       background: #000;
 
-      width: 60vw;           /* ~ two-thirds of viewport width */
-      max-width: 800px;     /* safety cap */
+      width: 66vw;           /* ~ two-thirds of viewport width */
+      max-width: 1400px;     /* safety cap */
     }
     .banner-wrap img{
       width: 100%;
       height: auto;          /* no cropping */
       display: block;
     }
+    /* Line under banner (same width & centered) */
+    .banner-meta{
+      width: 66vw;
+      max-width: 1400px;
+      margin: 6px auto 12px;
+      text-align: center;
+      color: var(--muted);
+      font-size: .95rem;
+    }
     @media (max-width: 991.98px){
       .banner-wrap{ width: 100%; }
+      .banner-meta{ width: 100%; }
     }
   </style>
 </head>
 <body>
   <div class="container-fluid py-3">
 
-    <!-- Banner: auto-hides if banner.png is missing -->
+    <!-- Banner -->
     <div class="banner-wrap">
-      <img src="banner.png" alt="Banner" onerror="this.closest('.banner-wrap').remove();">
+      <img src="banner.png" alt="Banner" onerror="this.closest('.banner-wrap').remove();document.querySelector('.banner-meta')?.remove();">
+    </div>
+    <!-- Line under banner -->
+    <div class="banner-meta">
+      Made with Love and Motivation by
+      <a href="https://x.com/PetrAnto12" target="_blank" rel="noopener">@PetrAnto12</a>
     </div>
 
     <div class="d-flex align-items-center justify-content-between mb-3 sticky-top sticky-top-bg px-2 py-2 rounded-3">
