@@ -96,7 +96,7 @@
 
     <div class="mt-4" style="color:var(--muted);font-size:.9rem">
       <strong>Notes:</strong> “Click” auto-checks when opening the link; “Farm” is manual. Week/Month/Quarter tiles derive from daily data.
-      Cloud sync uses a private GitHub Gist with a Personal Access Token (scope: <code>gist</code> only).
+      Cloud sync uses a private GitHub Gist with a Personal Access Token (scope: <code>gist</code> only). Features change—DYOR.
     </div>
   </div>
 
@@ -153,43 +153,136 @@
     // ---------- Config ----------
     const PROJECTS = [
       { key:'fantasyTop',  name:'FantasyTop',  url:'https://fantasy.top?ref=petranto12', desc:'Fantasy trading of creators',
-        routine:['Daily check-in / claim','Buy/sell 1 card or set lineup','Engage with 3 profiles'] },
+        routine:[
+          'Daily: claim/check-in & scan missions',
+          'Trade: buy/sell 1 card OR set/refresh a lineup',
+          'Engage: follow/like 3 creator profiles',
+          'Verify: claim rewards / update streak'
+        ]},
+
       { key:'cookieFun',   name:'Cookie.fun',  url:'https://www.cookie.fun/profile', desc:'Quests & mini-games',
-        routine:['Open profile & check tasks','Play 1 mini-game / spin','Claim daily rewards'] },
+        routine:[
+          'Open profile → check daily tasks',
+          'Play 1 mini-game/spin; finish 1–2 quests',
+          'Claim daily/streak rewards',
+          'Review: new events or multipliers'
+        ]},
+
       { key:'kaito',       name:'Kaito (Yaps)', url:'https://yaps.kaito.ai/referral/1382662710396080133', desc:'AI/social research app',
-        routine:['Post 1 yap or reply','Engage (like/repost) 3 items','Check quest/XP page'] },
+        routine:[
+          'Post 1 yap OR reply with value',
+          'Engage: like/repost 3 items in your niche',
+          'Check quests/XP tab; complete 1 task',
+          'Review alerts/topics for fresh signals'
+        ]},
+
       { key:'galxe',       name:'Galxe', url:'https://app.galxe.com/hub/invite?code=GICyJr43Nj1NJrZqi4fhOdcjt4V_avTgEEJxuu-AC0=', desc:'Quest & airdrop hub',
-        routine:['Daily check-in (if any)','Complete 1 quest/campaign','Claim points/badges'] },
+        routine:[
+          'Open campaigns; pick 1–2 quick quests',
+          'Complete on-chain/off-chain steps & verify',
+          'Claim OAT/points if eligible',
+          'Track: new partner campaigns'
+        ]},
+
       { key:'klout',       name:'Klout.gg', url:'https://klout.gg/', desc:'Social points tracker', referralNote:'Referral: “petranto 🧬”', copyText:'petranto 🧬',
-        routine:['Submit 1 post/task','React to 3 posts','Claim/verify points'] },
+        routine:[
+          'Market: Open/Close Long/Short positions',
+          'Klout: Post Quality Content',
+          'Shout: Share referral',
+          'Chaser: Play and win at least once'
+        ]},
+
       { key:'wallchain',   name:'Wallchain (Quacks)', url:'https://quacks.app/?ref=PetrAnto12', desc:'Referral/points portal',
-        routine:['Open dashboard & check-in','Complete 1 boost/quest','Share/referral once'] },
+        routine:[
+          'Dashboard: daily open & check-in',
+          'Complete 1 boost/quest (follow/like/etc.)',
+          'Share referral once where relevant',
+          'Verify completion; monitor points'
+        ]},
+
       { key:'ethos',       name:'Ethos', url:'https://app.ethos.network/', desc:'Web3 profile & quests',
-        routine:['Open quests tab','Complete 1 task','Sync/verify profile'] },
+        routine:[
+          'Quests: complete 1 task',
+          'Sync: connect wallet / verify socials',
+          'Profile: update bio/links if needed',
+          'Claim any available rewards'
+        ]},
+
       { key:'fundamental', name:'Fundamental.lol', url:'https://fundamental.lol/r/?node=PetrAnto12-5mu', desc:'Onchain social hub',
-        routine:['Daily visit & check-in','Engage with 3 feeds','Complete 1 mission'] },
+        routine:[
+          'Daily visit & check-in',
+          'Engage with 3 feeds or posts',
+          'Complete 1 mission; submit proof if asked',
+          'Track node/referral stats'
+        ]},
+
       { key:'addicted',    name:'Addicted.fun', url:'https://addicted.fun', desc:'Daily tasks & games', referralNote:'Invite code', copyText:'IHMJC4DK',
-        routine:['Open daily tasks','Finish 1–3 quick quests','Claim streak/reward'] },
+        routine:[
+          'Open “Daily” and quick tasks',
+          'Finish 1–3 quests or a mini-game',
+          'Claim streak & any bonus chests',
+          'Peek at limited-time events'
+        ]},
+
       { key:'addplus',     name:'AddPlus.org', url:'https://addplus.org/boost/PetrAnto12', desc:'Engagement boosters',
-        routine:['Run 1 boost','Verify completion','Check balance/credits'] },
+        routine:[
+          'Run 1 boost from queue',
+          'Engage exactly as required (like/comment/etc.)',
+          'Verify completion and points',
+          'Check credits/balance & refill if needed'
+        ]},
 
       { key:'mindoshare',  name:'Mindoshare.ai', url:'https://mindoshare.ai/kol?ref=cmev63nqn01mllr3wtpn2whcm', desc:'KOL tasks & referrals',
-        routine:['Pick 1 KOL task','Submit proof/URL','Check referral stats'] },
+        routine:[
+          'Pick 1 KOL task with good ROI',
+          'Execute steps; capture proof link/screenshot',
+          'Submit proof; confirm status',
+          'Monitor referrals/leaderboard'
+        ]},
 
       { key:'xeetBoost',   name:'Xeet Boost', url:'https://www.xeet.ai/boost/PetrAnto12', desc:'Boost tasks (Xeet)',
-        routine:['Complete 1–2 boosts','Verify in-app','Optional: share a post'] },
+        routine:[
+          'Complete 1–2 boosts',
+          'Verify in-app; ensure credit applied',
+          'Optional: publish 1 booster tweet',
+          'Check cooldowns / new boosts'
+        ]},
+
       { key:'bantr',       name:'Bantr', url:'https://beta.bantr.fun?ic=1UB6N36', desc:'Engagement quests',
-        routine:['Open daily quests','Vote/comment 3x','Claim/check points'] },
+        routine:[
+          'Open daily quests',
+          'Vote or comment 3× on trending items',
+          'Submit any picks/predictions',
+          'Claim points; review upcoming rounds'
+        ]},
+
       { key:'consumerfi',  name:'ConsumerFi', url:'https://www.consumerfi.ai/app?referral_code=PVZcXvqV', desc:'ConsumerFi quests',
-        routine:['Daily check-in','Complete 1 survey/quiz','Review referrals'] },
+        routine:[
+          'Daily check-in',
+          'Complete 1 survey/quiz',
+          'Invite/referral: share once',
+          'Verify rewards / payout queue'
+        ]},
+
       { key:'astranovaBP', name:'Astranova BlackPass', url:'https://blackpass.astranova.world?referral_code=6ed940ede64b', desc:'NFT pass portal',
-        routine:['Visit pass dashboard','Do 1 mission/mint if live','Claim/track points'] },
+        routine:[
+          'Visit pass dashboard',
+          'Do 1 mission/mint if live',
+          'Track pass/points progress',
+          'Claim any available rewards'
+        ]},
+
       { key:'kudoswap',    name:'KudoSwap', url:'https://kudoswap.com/PetrAnto12', desc:'Swap & quests',
-        routine:['Swap small amount','Add/remove tiny LP','Check quests/points'] },
+        routine:[
+          'Swap a small amount (keep costs low)',
+          'Add/remove tiny LP once',
+          'Open quests tab; complete 1 action',
+          'Claim points / check streak'
+        ]},
     ];
 
     const STORAGE_KEY = 'airdropTracker.v2';
-    const SYNC_KEY    = 'airdropTracker.sync'; // <— single definition (fixed)
+    const SYNC_KEY    = 'airdropTracker.sync';
 
     // Period sizes
     const PAST_DAYS = 7, PAST_WEEKS = 4, PAST_MONTHS = 3, PAST_QUARTERS = 3;
@@ -246,7 +339,11 @@
     };
 
     const escapeHtml=(s='')=>s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-    const renderRoutine=(arr)=>{ if(!arr||!arr.length) return ''; const items=arr.slice(0,3).map(x=>`<li>${escapeHtml(x)}</li>`).join(''); return `<ul class="mb-0">${items}</ul>`; };
+    const renderRoutine=(arr)=>{ // now shows up to 4 lines
+      if(!arr||!arr.length) return '';
+      const items=arr.slice(0,4).map(x=>`<li>${escapeHtml(x)}</li>`).join('');
+      return `<ul class="mb-0">${items}</ul>`;
+    };
 
     const makeStatusCell=(color)=>{const td=document.createElement('td'); td.className='text-center'; const div=document.createElement('div'); div.className=`status-box status-${color}`; td.appendChild(div); return td;};
     const setCellColor=(td,color)=>{const box=td.querySelector('.status-box'); if(!box) return; box.classList.remove('status-green','status-yellow','status-red'); box.classList.add(`status-${color}`);};
