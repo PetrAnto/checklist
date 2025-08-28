@@ -36,7 +36,10 @@
 
     .project-cell a { text-decoration: underline; }
     .project-col { min-width: 220px; }
-    .desc-col { width: 280px; color: var(--muted); font-size: .9rem; }
+    .desc-col { width: 260px; color: var(--muted); font-size: .9rem; }
+    .routine-col { width: 320px; font-size: .9rem; }
+    .routine-col ul { margin-bottom: 0; padding-left: 1.2rem; }
+    .routine-col li { margin-bottom: .15rem; }
     .today-col { width: 72px; text-align: center; }
     .history-col { width: 40px; text-align: center; }
     .table-responsive { overflow-x: auto; } /* full-width with horizontal scroll if needed */
@@ -129,7 +132,7 @@
 
     <div class="mt-4" style="color:var(--muted); font-size:.9rem;">
       <strong>Notes:</strong> “Click” auto-checks when opening the link; “Farm” is manual.
-      Week/Month/Quarter tiles are derived from locally stored daily data.
+      Week/Month/Quarter tiles are derived from locally stored daily data. Routines are indicative—features change, DYOR.
     </div>
   </div>
 
@@ -146,17 +149,40 @@
   <script>
     // ---------- Config ----------
     const PROJECTS = [
-      { key: 'fantasyTop',   name: 'FantasyTop',           url: 'https://fantasy.top?ref=petranto12', desc: 'Fantasy trading of creators' },
-      { key: 'cookieFun',    name: 'Cookie.fun',           url: 'https://www.cookie.fun/profile',     desc: 'Quests & mini-games' },
-      { key: 'kaito',        name: 'Kaito (Yaps)',         url: 'https://yaps.kaito.ai/referral/1382662710396080133', desc: 'AI/social research app' },
-      { key: 'galxe',        name: 'Galxe',                url: 'https://app.galxe.com/hub/invite?code=GICyJr43Nj1NJrZqi4fhOdcjt4V_avTgEEJxuu-AC0=', desc: 'Quest & airdrop hub' },
-      { key: 'klout',        name: 'Klout.gg',             url: 'https://klout.gg/', desc: 'Social points tracker', referralNote: 'Referral: “petranto 🧬”', copyText: 'petranto 🧬' },
-      { key: 'wallchain',    name: 'Wallchain (Quacks)',   url: 'https://quacks.app/?ref=PetrAnto12', desc: 'Referral/points portal' },
-      { key: 'ethos',        name: 'Ethos',                url: 'https://app.ethos.network/',         desc: 'Web3 profile & quests' },
-      { key: 'fundamental',  name: 'Fundamental.lol',      url: 'https://fundamental.lol/r/?node=PetrAnto12-5mu', desc: 'Onchain social hub' },
-      { key: 'addicted',     name: 'Addicted.fun',         url: 'https://addicted.fun',               desc: 'Daily tasks & games', referralNote: 'Invite code', copyText: 'IHMJC4DK' },
-      { key: 'addplus',      name: 'AddPlus.org',          url: 'https://addplus.org/boost/PetrAnto12', desc: 'Engagement boosters' },
-      { key: 'mindoshare',   name: 'Mindoshare.ai',        url: 'https://mindoshare.ai/kol?ref=cmev63nqn01mllr3wtpn2whcm', desc: 'KOL tasks & referrals' },
+      { key: 'fantasyTop',   name: 'FantasyTop',           url: 'https://fantasy.top?ref=petranto12', desc: 'Fantasy trading of creators',
+        routine: ['Daily check-in / claim', 'Buy/sell 1 card or set lineup', 'Engage with 3 profiles'] },
+      { key: 'cookieFun',    name: 'Cookie.fun',           url: 'https://www.cookie.fun/profile',     desc: 'Quests & mini-games',
+        routine: ['Open profile & check tasks', 'Play 1 mini-game / spin', 'Claim daily rewards'] },
+      { key: 'kaito',        name: 'Kaito (Yaps)',         url: 'https://yaps.kaito.ai/referral/1382662710396080133', desc: 'AI/social research app',
+        routine: ['Post 1 yap or reply', 'Engage (like/repost) 3 items', 'Check quest/XP page'] },
+      { key: 'galxe',        name: 'Galxe',                url: 'https://app.galxe.com/hub/invite?code=GICyJr43Nj1NJrZqi4fhOdcjt4V_avTgEEJxuu-AC0=', desc: 'Quest & airdrop hub',
+        routine: ['Daily check-in (if any)', 'Complete 1 quest/campaign', 'Claim points/badges'] },
+      { key: 'klout',        name: 'Klout.gg',             url: 'https://klout.gg/', desc: 'Social points tracker', referralNote: 'Referral: “petranto 🧬”', copyText: 'petranto 🧬',
+        routine: ['Submit 1 post/task', 'React to 3 posts', 'Claim/verify points'] },
+      { key: 'wallchain',    name: 'Wallchain (Quacks)',   url: 'https://quacks.app/?ref=PetrAnto12', desc: 'Referral/points portal',
+        routine: ['Open dashboard & check-in', 'Complete 1 boost/quest', 'Share/referral once'] },
+      { key: 'ethos',        name: 'Ethos',                url: 'https://app.ethos.network/',         desc: 'Web3 profile & quests',
+        routine: ['Open quests tab', 'Complete 1 task', 'Sync/verify profile'] },
+      { key: 'fundamental',  name: 'Fundamental.lol',      url: 'https://fundamental.lol/r/?node=PetrAnto12-5mu', desc: 'Onchain social hub',
+        routine: ['Daily visit & check-in', 'Engage with 3 feeds', 'Complete 1 mission'] },
+      { key: 'addicted',     name: 'Addicted.fun',         url: 'https://addicted.fun',               desc: 'Daily tasks & games', referralNote: 'Invite code', copyText: 'IHMJC4DK',
+        routine: ['Open daily tasks', 'Finish 1–3 quick quests', 'Claim streak/reward'] },
+      { key: 'addplus',      name: 'AddPlus.org',          url: 'https://addplus.org/boost/PetrAnto12', desc: 'Engagement boosters',
+        routine: ['Run 1 boost', 'Verify completion', 'Check balance/credits'] },
+
+      { key: 'mindoshare',   name: 'Mindoshare.ai',        url: 'https://mindoshare.ai/kol?ref=cmev63nqn01mllr3wtpn2whcm', desc: 'KOL tasks & referrals',
+        routine: ['Pick 1 KOL task', 'Submit proof/URL', 'Check referral stats'] },
+
+      { key: 'xeetBoost',    name: 'Xeet Boost',           url: 'https://www.xeet.ai/boost/PetrAnto12', desc: 'Boost tasks (Xeet)',
+        routine: ['Complete 1–2 boosts', 'Verify in-app', 'Optional: share a post'] },
+      { key: 'bantr',        name: 'Bantr',                url: 'https://beta.bantr.fun?ic=1UB6N36',   desc: 'Engagement quests',
+        routine: ['Open daily quests', 'Vote/comment 3x', 'Claim/check points'] },
+      { key: 'consumerfi',   name: 'ConsumerFi',           url: 'https://www.consumerfi.ai/app?referral_code=PVZcXvqV', desc: 'ConsumerFi quests',
+        routine: ['Daily check-in', 'Complete 1 survey/quiz', 'Review referrals'] },
+      { key: 'astranovaBP',  name: 'Astranova BlackPass',  url: 'https://blackpass.astranova.world?referral_code=6ed940ede64b', desc: 'NFT pass portal',
+        routine: ['Visit pass dashboard', 'Do 1 mission/mint if live', 'Claim/track points'] },
+      { key: 'kudoswap',     name: 'KudoSwap',             url: 'https://kudoswap.com/PetrAnto12',     desc: 'Swap & quests',
+        routine: ['Swap small amount', 'Add/remove tiny LP', 'Check quests/points'] },
     ];
 
     const STORAGE_KEY = 'airdropTracker.v2';
@@ -211,7 +237,7 @@
       } return res;
     };
 
-    // Storage
+    // Storage helpers
     const load = () => { try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}; } catch { return {}; } };
     const save = (data) => localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
     const ensureProj = (data, key) => { if(!data[key]) data[key] = { daily:{} }; return data[key]; };
@@ -251,6 +277,7 @@
       tr1.innerHTML = `
         <th rowspan="2" class="project-col text-center"></th>
         <th rowspan="2" class="desc-col text-center">Desc.</th>
+        <th rowspan="2" class="routine-col text-center">Routine</th>
         <th colspan="2" class="text-center">Today</th>
         <th colspan="${days.length}" class="text-center">Past 7 days</th>
         <th colspan="${weeks.length}" class="text-center">Past weeks</th>
@@ -267,6 +294,13 @@
         ${quarters.map(q => `<th class="history-col">${q.label}</th>`).join('')}
       `;
       headEl.appendChild(tr1); headEl.appendChild(tr2);
+    };
+
+    const escapeHtml = (str='') => str.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    const renderRoutine = (arr) => {
+      if (!arr || !arr.length) return '';
+      const items = arr.slice(0,3).map(x => `<li>${escapeHtml(x)}</li>`).join('');
+      return `<ul class="mb-0">${items}</ul>`;
     };
 
     const makeStatusCell = (color) => {
@@ -286,7 +320,7 @@
       const weeks = lastNWeeks(PAST_WEEKS);
       const months = lastNMonths(PAST_MONTHS);
       const quarters = lastNQuarters(PAST_QUARTERS);
-      let colIndex = 4; // [project, desc, click, farm]
+      let colIndex = 5; // [project, desc, routine, click, farm] -> first history col
       days.forEach(d => {
         const ds = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
         setCellColor(tr.cells[colIndex++], stateToColor(getDayState(key, ds)));
@@ -336,6 +370,11 @@
         const tdDesc = document.createElement('td');
         tdDesc.className = 'desc-col'; tdDesc.textContent = p.desc || '';
         tr.appendChild(tdDesc);
+
+        // Routine
+        const tdRoutine = document.createElement('td');
+        tdRoutine.className = 'routine-col'; tdRoutine.innerHTML = renderRoutine(p.routine);
+        tr.appendChild(tdRoutine);
 
         // Today: Click
         const tdClick = document.createElement('td'); tdClick.className = 'text-center';
