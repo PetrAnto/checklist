@@ -42,12 +42,9 @@
     .routine-col li { margin-bottom: .15rem; }
     .today-col { width: 72px; text-align: center; }
     .history-col { width: 40px; text-align: center; }
-    .table-responsive { overflow-x: auto; } /* full-width with horizontal scroll if needed */
+    .table-responsive { overflow-x: auto; }
 
-    .status-box {
-      width: 26px; height: 26px; border-radius: 4px; border: 1px solid rgba(255,255,255,.06);
-      display: inline-block;
-    }
+    .status-box { width: 26px; height: 26px; border-radius: 4px; border: 1px solid rgba(255,255,255,.06); display: inline-block; }
     .status-green { background: #21c35e; }
     .status-yellow { background: #f1c40f; }
     .status-red { background: #e74c3c; }
@@ -65,23 +62,11 @@
       overflow: hidden;
       border: 1px solid var(--border);
       background: #000;
-
-      width: 66vw;           /* ~ two-thirds of viewport width */
-      max-width: 1400px;     /* safety cap */
+      width: 66vw; max-width: 1400px;
     }
-    .banner-wrap img{
-      width: 100%;
-      height: auto;          /* no cropping */
-      display: block;
-    }
-    /* Line under banner (same width & centered) */
+    .banner-wrap img{ width: 100%; height: auto; display: block; }
     .banner-meta{
-      width: 66vw;
-      max-width: 1400px;
-      margin: 6px auto 12px;
-      text-align: center;
-      color: var(--muted);
-      font-size: .95rem;
+      width: 66vw; max-width: 1400px; margin: 6px auto 12px; text-align: center; color: var(--muted); font-size: .95rem;
     }
     @media (max-width: 991.98px){
       .banner-wrap{ width: 100%; }
@@ -105,7 +90,7 @@
     <div class="d-flex align-items-center justify-content-between mb-3 sticky-top sticky-top-bg px-2 py-2 rounded-3">
       <div>
         <h1 class="h4 mb-0">Airdrop Farming Tracker</h1>
-        <div class="subhead">Mode sombre • Auto-tick sur clic de lien • Confirmation manuelle du farm • Données locales</div>
+        <div class="subhead">Mode sombre • Auto-tick sur clic de lien • Confirmation manuelle du farm • Données locales + Cloud sync</div>
       </div>
       <div class="controls">
         <button id="resetTodayBtn" class="btn btn-outline-secondary btn-sm">Reset today</button>
@@ -132,9 +117,8 @@
     </div>
 
     <div class="mt-4" style="color:var(--muted); font-size:.9rem;">
-      <strong>Notes:</strong> “Click” auto-checks when opening the link; “Farm” is manual.
-      Week/Month/Quarter tiles derive from locally stored daily data.
-      <br>Cloud sync uses a private GitHub Gist with a Personal Access Token (scope: <code>gist</code> only). Keep your token secret.
+      <strong>Notes:</strong> “Click” auto-checks when opening the link; “Farm” is manual. Week/Month/Quarter tiles derive from locally stored daily data.<br>
+      Cloud sync uses a private GitHub Gist with a Personal Access Token (scope: <code>gist</code> only).
     </div>
   </div>
 
@@ -183,6 +167,10 @@
     </div>
   </div>
 
+  <!-- Load Bootstrap JS FIRST -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+  <!-- App script (runs AFTER Bootstrap is available) -->
   <script>
     // ---------- Config ----------
     const PROJECTS = [
@@ -226,10 +214,7 @@
     const SYNC_KEY = 'airdropTracker.sync'; // {token, gistId, lastSyncISO}
 
     // Period sizes
-    const PAST_DAYS = 7;
-    const PAST_WEEKS = 4;
-    const PAST_MONTHS = 3;
-    const PAST_QUARTERS = 3;
+    const PAST_DAYS = 7, PAST_WEEKS = 4, PAST_MONTHS = 3, PAST_QUARTERS = 3;
 
     // ---------- Utilities ----------
     const pad = n => String(n).padStart(2, '0');
@@ -249,31 +234,9 @@
     const quarterOf = (d) => Math.floor(d.getMonth()/3) + 1;
 
     const lastNDays = (n) => Array.from({length:n}, (_,i) => addDays(new Date(), -(i+1))).reverse();
-    const lastNWeeks = (n) => {
-      const res = []; const now = new Date();
-      for (let i=1;i<=n;i++){ const end = addDays(now, -7*(i-1)); const start = addDays(now, -7*i); res.unshift({start, end}); }
-      return res;
-    };
-    const lastNMonths = (n) => {
-      const res = []; const now = new Date();
-      for (let i=1;i<=n;i++){
-        const ref = new Date(now.getFullYear(), now.getMonth()-i, 1);
-        const start = new Date(ref.getFullYear(), ref.getMonth(), 1);
-        const end = new Date(ref.getFullYear(), ref.getMonth()+1, 1);
-        res.unshift({start, end, label: start.toLocaleString('en', {month:'long'})});
-      } return res;
-    };
-    const lastNQuarters = (n) => {
-      const res = []; const now = new Date(); let q = quarterOf(now) - 1; let y = now.getFullYear();
-      for (let i=0;i<n;i++){
-        if (q === 0){ q = 4; y -= 1; }
-        const startMonth = (q-1)*3;
-        const start = new Date(y, startMonth, 1);
-        const end = new Date(y, startMonth+3, 1);
-        res.unshift({start, end, label: `Q${q}-${String(y).slice(-2)}`});
-        q -= 1;
-      } return res;
-    };
+    const lastNWeeks = (n) => { const res=[]; const now=new Date(); for(let i=1;i<=n;i++){ const end=addDays(now,-7*(i-1)), start=addDays(now,-7*i); res.unshift({start,end}); } return res; };
+    const lastNMonths = (n) => { const res=[]; const now=new Date(); for(let i=1;i<=n;i++){ const ref=new Date(now.getFullYear(), now.getMonth()-i, 1); const start=new Date(ref.getFullYear(),ref.getMonth(),1); const end=new Date(ref.getFullYear(),ref.getMonth()+1,1); res.unshift({start,end,label:start.toLocaleString('en',{month:'long'})}); } return res; };
+    const lastNQuarters = (n) => { const res=[]; const now=new Date(); let q=quarterOf(now)-1, y=now.getFullYear(); for(let i=0;i<n;i++){ if(q===0){q=4;y-=1;} const sm=(q-1)*3; const start=new Date(y,sm,1); const end=new Date(y,sm+3,1); res.unshift({start,end,label:`Q${q}-${String(y).slice(-2)}`}); q-=1; } return res; };
 
     // Storage helpers
     const load = () => { try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}; } catch { return {}; } };
@@ -306,10 +269,7 @@
 
     const renderHead = () => {
       headEl.innerHTML = '';
-      const days = lastNDays(PAST_DAYS);
-      const weeks = lastNWeeks(PAST_WEEKS);
-      const months = lastNMonths(PAST_MONTHS);
-      const quarters = lastNQuarters(PAST_QUARTERS);
+      const days = lastNDays(PAST_DAYS), weeks = lastNWeeks(PAST_WEEKS), months = lastNMonths(PAST_MONTHS), quarters = lastNQuarters(PAST_QUARTERS);
 
       const tr1 = document.createElement('tr');
       tr1.innerHTML = `
@@ -346,7 +306,6 @@
       const div = document.createElement('div'); div.className = `status-box status-${color}`;
       td.appendChild(div); return td;
     };
-
     const setCellColor = (td, color) => {
       const box = td.querySelector('.status-box'); if (!box) return;
       box.classList.remove('status-green','status-yellow','status-red');
@@ -354,15 +313,9 @@
     };
 
     const updateHistoryCellsForRow = (key, tr) => {
-      const days = lastNDays(PAST_DAYS);
-      const weeks = lastNWeeks(PAST_WEEKS);
-      const months = lastNMonths(PAST_MONTHS);
-      const quarters = lastNQuarters(PAST_QUARTERS);
+      const days = lastNDays(PAST_DAYS), weeks = lastNWeeks(PAST_WEEKS), months = lastNMonths(PAST_MONTHS), quarters = lastNQuarters(PAST_QUARTERS);
       let colIndex = 5; // [project, description, routine, click, farm]
-      days.forEach(d => {
-        const ds = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
-        setCellColor(tr.cells[colIndex++], stateToColor(getDayState(key, ds)));
-      });
+      days.forEach(d => { const ds = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`; setCellColor(tr.cells[colIndex++], stateToColor(getDayState(key, ds))); });
       weeks.forEach(w => setCellColor(tr.cells[colIndex++], aggregateRange(key, w.start, w.end)));
       months.forEach(m => setCellColor(tr.cells[colIndex++], aggregateRange(key, m.start, m.end)));
       quarters.forEach(q => setCellColor(tr.cells[colIndex++], aggregateRange(key, q.start, q.end)));
@@ -370,10 +323,7 @@
 
     const renderBody = () => {
       bodyEl.innerHTML = '';
-      const days = lastNDays(PAST_DAYS);
-      const weeks = lastNWeeks(PAST_WEEKS);
-      const months = lastNMonths(PAST_MONTHS);
-      const quarters = lastNQuarters(PAST_QUARTERS);
+      const days = lastNDays(PAST_DAYS), weeks = lastNWeeks(PAST_WEEKS), months = lastNMonths(PAST_MONTHS), quarters = lastNQuarters(PAST_QUARTERS);
 
       PROJECTS.forEach(p => {
         const tr = document.createElement('tr');
@@ -428,10 +378,7 @@
         tdFarm.appendChild(cbFarm); tr.appendChild(tdFarm);
 
         // Days
-        days.forEach(d => {
-          const ds = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
-          tr.appendChild(makeStatusCell(stateToColor(getDayState(p.key, ds))));
-        });
+        days.forEach(d => { const ds = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`; tr.appendChild(makeStatusCell(stateToColor(getDayState(p.key, ds)))); });
         // Weeks / Months / Quarters
         weeks.forEach(w => tr.appendChild(makeStatusCell(aggregateRange(p.key, w.start, w.end))));
         months.forEach(m => tr.appendChild(makeStatusCell(aggregateRange(p.key, m.start, m.end))));
@@ -485,16 +432,15 @@
     const gistIdInput = document.getElementById('gistId');
     const lastSyncEl = document.getElementById('lastSync');
 
+    const SYNC_KEY = 'airdropTracker.sync';
     const loadSyncCfg = () => { try { return JSON.parse(localStorage.getItem(SYNC_KEY)) || {}; } catch { return {}; } };
     const saveSyncCfg = (cfg) => localStorage.setItem(SYNC_KEY, JSON.stringify(cfg));
-
     const refreshSyncUI = () => {
       const cfg = loadSyncCfg();
       tokenInput.value = cfg.token || '';
       gistIdInput.value = cfg.gistId || '';
       lastSyncEl.textContent = cfg.lastSyncISO ? `Last sync: ${new Date(cfg.lastSyncISO).toLocaleString()}` : '';
     };
-
     syncBtn.addEventListener('click', () => { refreshSyncUI(); syncModal.show(); });
 
     const ghHeaders = (token) => ({
@@ -503,7 +449,6 @@
       'X-GitHub-Api-Version': '2022-11-28',
       'Content-Type': 'application/json'
     });
-
     const FILENAME = 'airdrop-tracker.json';
 
     const mergeData = (a={}, b={}) => {
@@ -523,15 +468,10 @@
     const getLocalJSON = () => localStorage.getItem(STORAGE_KEY) || '{}';
 
     const createGist = async (token) => {
-      const body = {
-        description: 'Airdrop Farming Tracker data',
-        public: false,
-        files: { [FILENAME]: { content: getLocalJSON() } }
-      };
+      const body = { description: 'Airdrop Farming Tracker data', public: false, files: { [FILENAME]: { content: getLocalJSON() } } };
       const res = await fetch('https://api.github.com/gists', { method:'POST', headers: ghHeaders(token), body: JSON.stringify(body) });
       if (!res.ok) throw new Error(`Create failed: ${res.status}`);
-      const data = await res.json();
-      return data.id;
+      const data = await res.json(); return data.id;
     };
 
     const updateGist = async (token, gistId) => {
@@ -548,8 +488,7 @@
       const file = data.files && data.files[FILENAME];
       if (!file) throw new Error(`File ${FILENAME} not found in gist.`);
       if (file.truncated && file.raw_url) {
-        const raw = await fetch(file.raw_url);
-        return await raw.text();
+        const raw = await fetch(file.raw_url); return await raw.text();
       }
       return file.content || '{}';
     };
@@ -601,11 +540,7 @@
     });
 
     // ---------- Init ----------
-    const bootstrapCssLoaded = !!window.bootstrap;
-    if (!bootstrapCssLoaded) console.warn('Bootstrap not loaded');
     renderHead(); renderBody();
   </script>
-
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
