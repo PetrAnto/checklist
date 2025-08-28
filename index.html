@@ -114,6 +114,7 @@
         <label class="btn btn-outline-primary btn-sm mb-0">
           Import <input id="importInput" type="file" accept="application/json" hidden>
         </label>
+        <button id="syncBtn" class="btn btn-outline-success btn-sm">Sync</button>
       </div>
     </div>
 
@@ -132,7 +133,8 @@
 
     <div class="mt-4" style="color:var(--muted); font-size:.9rem;">
       <strong>Notes:</strong> “Click” auto-checks when opening the link; “Farm” is manual.
-      Week/Month/Quarter tiles are derived from locally stored daily data. Routines are indicative—features change, DYOR.
+      Week/Month/Quarter tiles derive from locally stored daily data.
+      <br>Cloud sync uses a private GitHub Gist with a Personal Access Token (scope: <code>gist</code> only). Keep your token secret.
     </div>
   </div>
 
@@ -142,6 +144,41 @@
       <div class="d-flex">
         <div class="toast-body" id="toastBody">Done</div>
         <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sync Modal -->
+  <div class="modal fade" id="syncModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content bg-dark text-light border border-secondary">
+        <div class="modal-header">
+          <h5 class="modal-title">Cloud Sync (GitHub Gist)</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-2 small text-secondary">
+            Create a Personal Access Token with <strong>gist</strong> scope only. Paste it below (stored only in your browser).
+          </div>
+          <div class="mb-3">
+            <label class="form-label">GitHub Token (scope: gist)</label>
+            <input id="ghToken" type="password" class="form-control form-control-sm" placeholder="ghp_...">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Gist ID (leave blank to create new)</label>
+            <input id="gistId" type="text" class="form-control form-control-sm" placeholder="e.g. a1b2c3d4e5f6...">
+          </div>
+          <div class="d-flex flex-wrap gap-2">
+            <button id="gistCreateBtn" class="btn btn-success btn-sm">Create New Secret Gist</button>
+            <button id="gistSaveBtn" class="btn btn-primary btn-sm">Save to Gist</button>
+            <button id="gistLoadBtn" class="btn btn-outline-primary btn-sm">Load from Gist</button>
+            <button id="gistForgetBtn" class="btn btn-outline-danger btn-sm ms-auto">Sign out (clear token)</button>
+          </div>
+          <div class="mt-3 small text-secondary">
+            <div>File name: <code>airdrop-tracker.json</code></div>
+            <div id="lastSync" class="mt-1"></div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -186,6 +223,7 @@
     ];
 
     const STORAGE_KEY = 'airdropTracker.v2';
+    const SYNC_KEY = 'airdropTracker.sync'; // {token, gistId, lastSyncISO}
 
     // Period sizes
     const PAST_DAYS = 7;
@@ -320,7 +358,7 @@
       const weeks = lastNWeeks(PAST_WEEKS);
       const months = lastNMonths(PAST_MONTHS);
       const quarters = lastNQuarters(PAST_QUARTERS);
-      let colIndex = 5; // [project, description, routine, click, farm] -> first history col
+      let colIndex = 5; // [project, description, routine, click, farm]
       days.forEach(d => {
         const ds = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
         setCellColor(tr.cells[colIndex++], stateToColor(getDayState(key, ds)));
@@ -374,4 +412,200 @@
         // Routine
         const tdRoutine = document.createElement('td');
         tdRoutine.className = 'routine-col'; tdRoutine.innerHTML = renderRoutine(p.routine);
-        tr.appendChild(tdR
+        tr.appendChild(tdRoutine);
+
+        // Today: Click
+        const tdClick = document.createElement('td'); tdClick.className = 'text-center';
+        const cbClick = document.createElement('input'); cbClick.type='checkbox'; cbClick.className='form-check-input';
+        cbClick.id = `click-${p.key}`; cbClick.setAttribute('readonly','readonly');
+        cbClick.checked = getDayState(p.key, today()).clicked; tdClick.appendChild(cbClick); tr.appendChild(tdClick);
+
+        // Today: Farm
+        const tdFarm = document.createElement('td'); tdFarm.className = 'text-center';
+        const cbFarm = document.createElement('input'); cbFarm.type='checkbox'; cbFarm.className='form-check-input'; cbFarm.id=`farm-${p.key}`;
+        cbFarm.checked = getDayState(p.key, today()).farmed;
+        cbFarm.addEventListener('change', () => { setTodayState(p.key, { farmed: cbFarm.checked }); updateHistoryCellsForRow(p.key, tr); });
+        tdFarm.appendChild(cbFarm); tr.appendChild(tdFarm);
+
+        // Days
+        days.forEach(d => {
+          const ds = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+          tr.appendChild(makeStatusCell(stateToColor(getDayState(p.key, ds))));
+        });
+        // Weeks / Months / Quarters
+        weeks.forEach(w => tr.appendChild(makeStatusCell(aggregateRange(p.key, w.start, w.end))));
+        months.forEach(m => tr.appendChild(makeStatusCell(aggregateRange(p.key, m.start, m.end))));
+        quarters.forEach(q => tr.appendChild(makeStatusCell(aggregateRange(p.key, q.start, q.end))));
+
+        bodyEl.appendChild(tr);
+      });
+    };
+
+    // ---------- Toast ----------
+    const showToast = (msg) => {
+      const tb = document.getElementById('toastBody'); tb.textContent = msg;
+      const toast = new bootstrap.Toast(document.getElementById('toast')); toast.show();
+    };
+
+    // ---------- Export/Import ----------
+    document.getElementById('resetTodayBtn').addEventListener('click', () => {
+      const data = load(); const t = today();
+      PROJECTS.forEach(p => { if (data[p.key]?.daily?.[t]) data[p.key].daily[t] = { clicked:false, farmed:false }; });
+      save(data);
+      PROJECTS.forEach(p => {
+        const c1 = document.getElementById(`click-${p.key}`); const c2 = document.getElementById(`farm-${p.key}`);
+        if (c1) c1.checked = false; if (c2) c2.checked = false;
+      });
+      renderBody(); showToast('Today reset.');
+    });
+
+    document.getElementById('resetAllBtn').addEventListener('click', () => {
+      if (!confirm('This will erase ALL saved history for this tracker. Continue?')) return;
+      localStorage.removeItem(STORAGE_KEY); renderBody(); showToast('All data cleared.');
+    });
+
+    document.getElementById('exportBtn').addEventListener('click', () => {
+      const blob = new Blob([localStorage.getItem(STORAGE_KEY) || '{}'], {type:'application/json'});
+      const url = URL.createObjectURL(blob); const a = document.createElement('a');
+      a.href = url; a.download = `airdrop-tracker-${today()}.json`; a.click(); URL.revokeObjectURL(url);
+    });
+
+    document.getElementById('importInput').addEventListener('change', async (e) => {
+      const file = e.target.files?.[0]; if (!file) return;
+      const text = await file.text();
+      try { JSON.parse(text); localStorage.setItem(STORAGE_KEY, text); renderBody(); showToast('Import successful.'); }
+      catch { showToast('Invalid JSON file.'); }
+      finally { e.target.value = ''; }
+    });
+
+    // ---------- Cloud Sync (GitHub Gist) ----------
+    const syncBtn = document.getElementById('syncBtn');
+    const syncModal = new bootstrap.Modal(document.getElementById('syncModal'));
+    const tokenInput = document.getElementById('ghToken');
+    const gistIdInput = document.getElementById('gistId');
+    const lastSyncEl = document.getElementById('lastSync');
+
+    const loadSyncCfg = () => { try { return JSON.parse(localStorage.getItem(SYNC_KEY)) || {}; } catch { return {}; } };
+    const saveSyncCfg = (cfg) => localStorage.setItem(SYNC_KEY, JSON.stringify(cfg));
+
+    const refreshSyncUI = () => {
+      const cfg = loadSyncCfg();
+      tokenInput.value = cfg.token || '';
+      gistIdInput.value = cfg.gistId || '';
+      lastSyncEl.textContent = cfg.lastSyncISO ? `Last sync: ${new Date(cfg.lastSyncISO).toLocaleString()}` : '';
+    };
+
+    syncBtn.addEventListener('click', () => { refreshSyncUI(); syncModal.show(); });
+
+    const ghHeaders = (token) => ({
+      'Authorization': `token ${token}`,
+      'Accept': 'application/vnd.github+json',
+      'X-GitHub-Api-Version': '2022-11-28',
+      'Content-Type': 'application/json'
+    });
+
+    const FILENAME = 'airdrop-tracker.json';
+
+    const mergeData = (a={}, b={}) => {
+      const out = JSON.parse(JSON.stringify(a || {}));
+      for (const key of Object.keys(b || {})) {
+        if (!out[key]) out[key] = { daily:{} };
+        const bd = (b[key] && b[key].daily) || {};
+        for (const d of Object.keys(bd)) {
+          const r = bd[d] || {clicked:false,farmed:false};
+          const l = (out[key].daily && out[key].daily[d]) || {clicked:false,farmed:false};
+          out[key].daily[d] = { clicked: !!(l.clicked || r.clicked), farmed: !!(l.farmed || r.farmed) };
+        }
+      }
+      return out;
+    };
+
+    const getLocalJSON = () => localStorage.getItem(STORAGE_KEY) || '{}';
+
+    const createGist = async (token) => {
+      const body = {
+        description: 'Airdrop Farming Tracker data',
+        public: false,
+        files: { [FILENAME]: { content: getLocalJSON() } }
+      };
+      const res = await fetch('https://api.github.com/gists', { method:'POST', headers: ghHeaders(token), body: JSON.stringify(body) });
+      if (!res.ok) throw new Error(`Create failed: ${res.status}`);
+      const data = await res.json();
+      return data.id;
+    };
+
+    const updateGist = async (token, gistId) => {
+      const body = { files: { [FILENAME]: { content: getLocalJSON() } } };
+      const res = await fetch(`https://api.github.com/gists/${encodeURIComponent(gistId)}`, { method:'PATCH', headers: ghHeaders(token), body: JSON.stringify(body) });
+      if (!res.ok) throw new Error(`Save failed: ${res.status}`);
+      return true;
+    };
+
+    const fetchGistJSON = async (token, gistId) => {
+      const res = await fetch(`https://api.github.com/gists/${encodeURIComponent(gistId)}`, { headers: ghHeaders(token) });
+      if (!res.ok) throw new Error(`Load failed: ${res.status}`);
+      const data = await res.json();
+      const file = data.files && data.files[FILENAME];
+      if (!file) throw new Error(`File ${FILENAME} not found in gist.`);
+      if (file.truncated && file.raw_url) {
+        const raw = await fetch(file.raw_url);
+        return await raw.text();
+      }
+      return file.content || '{}';
+    };
+
+    document.getElementById('gistCreateBtn').addEventListener('click', async () => {
+      const token = tokenInput.value.trim();
+      if (!token) return showToast('Token required.');
+      try {
+        const id = await createGist(token);
+        const cfg = { token, gistId: id, lastSyncISO: new Date().toISOString() };
+        saveSyncCfg(cfg); refreshSyncUI();
+        showToast('Gist created & saved.');
+      } catch (e) { console.error(e); showToast(e.message || 'Create failed'); }
+    });
+
+    document.getElementById('gistSaveBtn').addEventListener('click', async () => {
+      const token = tokenInput.value.trim();
+      if (!token) return showToast('Token required.');
+      let id = gistIdInput.value.trim();
+      try {
+        if (!id) id = await createGist(token); else await updateGist(token, id);
+        const cfg = { token, gistId: id, lastSyncISO: new Date().toISOString() };
+        saveSyncCfg(cfg); refreshSyncUI();
+        showToast('Saved to Gist.');
+      } catch (e) { console.error(e); showToast(e.message || 'Save failed'); }
+    });
+
+    document.getElementById('gistLoadBtn').addEventListener('click', async () => {
+      const token = tokenInput.value.trim();
+      const id = gistIdInput.value.trim();
+      if (!token || !id) return showToast('Token and Gist ID required.');
+      try {
+        const remoteText = await fetchGistJSON(token, id);
+        const remote = JSON.parse(remoteText || '{}');
+        const local = load();
+        const merged = mergeData(local, remote);
+        save(merged);
+        renderBody();
+        const cfg = { token, gistId: id, lastSyncISO: new Date().toISOString() };
+        saveSyncCfg(cfg); refreshSyncUI();
+        showToast('Loaded & merged from Gist.');
+      } catch (e) { console.error(e); showToast(e.message || 'Load failed'); }
+    });
+
+    document.getElementById('gistForgetBtn').addEventListener('click', () => {
+      localStorage.removeItem(SYNC_KEY);
+      tokenInput.value = ''; gistIdInput.value = ''; lastSyncEl.textContent = '';
+      showToast('Token cleared (local only).');
+    });
+
+    // ---------- Init ----------
+    const bootstrapCssLoaded = !!window.bootstrap;
+    if (!bootstrapCssLoaded) console.warn('Bootstrap not loaded');
+    renderHead(); renderBody();
+  </script>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
