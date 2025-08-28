@@ -32,12 +32,12 @@
       --bs-table-striped-color: var(--text);
       --bs-table-border-color: var(--border);
     }
-    .table thead th { background: var(--panel-2); border-color: var(--border); text-align: center; }
+    .table thead th { background: var(--panel-2); border-color: var(--border); text-align: center; vertical-align: middle; }
 
     .project-cell a { text-decoration: underline; }
     .project-col { min-width: 220px; }
-    .desc-col { width: 260px; color: var(--muted); font-size: .9rem; }
-    .routine-col { width: 320px; font-size: .9rem; }
+    .desc-col { color: var(--muted); font-size: .9rem; white-space: normal; vertical-align: middle !important; }
+    .routine-col { font-size: .9rem; vertical-align: middle !important; }
     .routine-col ul { margin-bottom: 0; padding-left: 1.2rem; }
     .routine-col li { margin-bottom: .15rem; }
     .today-col { width: 72px; text-align: center; }
@@ -276,7 +276,7 @@
       const tr1 = document.createElement('tr');
       tr1.innerHTML = `
         <th rowspan="2" class="project-col text-center"></th>
-        <th rowspan="2" class="desc-col text-center">Desc.</th>
+        <th rowspan="2" class="desc-col text-center">Description</th>
         <th rowspan="2" class="routine-col text-center">Routine</th>
         <th colspan="2" class="text-center">Today</th>
         <th colspan="${days.length}" class="text-center">Past 7 days</th>
@@ -320,7 +320,7 @@
       const weeks = lastNWeeks(PAST_WEEKS);
       const months = lastNMonths(PAST_MONTHS);
       const quarters = lastNQuarters(PAST_QUARTERS);
-      let colIndex = 5; // [project, desc, routine, click, farm] -> first history col
+      let colIndex = 5; // [project, description, routine, click, farm] -> first history col
       days.forEach(d => {
         const ds = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
         setCellColor(tr.cells[colIndex++], stateToColor(getDayState(key, ds)));
@@ -366,7 +366,7 @@
         }
         tr.appendChild(projectCell);
 
-        // Desc
+        // Description
         const tdDesc = document.createElement('td');
         tdDesc.className = 'desc-col'; tdDesc.textContent = p.desc || '';
         tr.appendChild(tdDesc);
@@ -374,75 +374,4 @@
         // Routine
         const tdRoutine = document.createElement('td');
         tdRoutine.className = 'routine-col'; tdRoutine.innerHTML = renderRoutine(p.routine);
-        tr.appendChild(tdRoutine);
-
-        // Today: Click
-        const tdClick = document.createElement('td'); tdClick.className = 'text-center';
-        const cbClick = document.createElement('input'); cbClick.type='checkbox'; cbClick.className='form-check-input';
-        cbClick.id = `click-${p.key}`; cbClick.setAttribute('readonly','readonly');
-        cbClick.checked = getDayState(p.key, today()).clicked; tdClick.appendChild(cbClick); tr.appendChild(tdClick);
-
-        // Today: Farm
-        const tdFarm = document.createElement('td'); tdFarm.className = 'text-center';
-        const cbFarm = document.createElement('input'); cbFarm.type='checkbox'; cbFarm.className='form-check-input'; cbFarm.id=`farm-${p.key}`;
-        cbFarm.checked = getDayState(p.key, today()).farmed;
-        cbFarm.addEventListener('change', () => { setTodayState(p.key, { farmed: cbFarm.checked }); updateHistoryCellsForRow(p.key, tr); });
-        tdFarm.appendChild(cbFarm); tr.appendChild(tdFarm);
-
-        // Days
-        days.forEach(d => {
-          const ds = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
-          tr.appendChild(makeStatusCell(stateToColor(getDayState(p.key, ds))));
-        });
-        // Weeks / Months / Quarters
-        weeks.forEach(w => tr.appendChild(makeStatusCell(aggregateRange(p.key, w.start, w.end))));
-        months.forEach(m => tr.appendChild(makeStatusCell(aggregateRange(p.key, m.start, m.end))));
-        quarters.forEach(q => tr.appendChild(makeStatusCell(aggregateRange(p.key, q.start, q.end))));
-
-        bodyEl.appendChild(tr);
-      });
-    };
-
-    // ---------- Controls ----------
-    const showToast = (msg) => {
-      const tb = document.getElementById('toastBody'); tb.textContent = msg;
-      const toast = new bootstrap.Toast(document.getElementById('toast')); toast.show();
-    };
-
-    document.getElementById('resetTodayBtn').addEventListener('click', () => {
-      const data = load(); const t = today();
-      PROJECTS.forEach(p => { if (data[p.key]?.daily?.[t]) data[p.key].daily[t] = { clicked:false, farmed:false }; });
-      save(data);
-      PROJECTS.forEach(p => {
-        const c1 = document.getElementById(`click-${p.key}`); const c2 = document.getElementById(`farm-${p.key}`);
-        if (c1) c1.checked = false; if (c2) c2.checked = false;
-      });
-      renderBody(); showToast('Today reset.');
-    });
-
-    document.getElementById('resetAllBtn').addEventListener('click', () => {
-      if (!confirm('This will erase ALL saved history for this tracker. Continue?')) return;
-      localStorage.removeItem(STORAGE_KEY); renderBody(); showToast('All data cleared.');
-    });
-
-    document.getElementById('exportBtn').addEventListener('click', () => {
-      const blob = new Blob([localStorage.getItem(STORAGE_KEY) || '{}'], {type:'application/json'});
-      const url = URL.createObjectURL(blob); const a = document.createElement('a');
-      a.href = url; a.download = `airdrop-tracker-${today()}.json`; a.click(); URL.revokeObjectURL(url);
-    });
-
-    document.getElementById('importInput').addEventListener('change', async (e) => {
-      const file = e.target.files?.[0]; if (!file) return;
-      const text = await file.text();
-      try { JSON.parse(text); localStorage.setItem(STORAGE_KEY, text); renderBody(); showToast('Import successful.'); }
-      catch { showToast('Invalid JSON file.'); }
-      finally { e.target.value = ''; }
-    });
-
-    // ---------- Init ----------
-    renderHead(); renderBody();
-  </script>
-
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
+        tr.appendChild(tdR
