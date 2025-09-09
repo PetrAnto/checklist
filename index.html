@@ -24,13 +24,13 @@
     .table thead th{background:var(--panel-2);border-color:var(--border);text-align:center;vertical-align:middle}
     .project-cell a{text-decoration:underline}
     .project-col{min-width:220px}
-    .desc-col{color:var(--muted);font-size:.9rem;white-space:normal;vertical-align:middle !important}
-    .routine-col{font-size:.9rem;vertical-align:middle !important}
+    .desc-col{color:var(--muted);font-size:.9rem;white-space:normal;vertical-align:middle!important}
+    .routine-col{font-size:.9rem;vertical-align:middle!important}
     .routine-col ul{margin-bottom:0;padding-left:1.2rem}
     .routine-col li{margin-bottom:.15rem}
     .today-col{width:72px;text-align:center}
     .history-col{width:40px;text-align:center}
-    .score-col{min-width:200px;vertical-align:middle !important}
+    .score-col{min-width:200px;vertical-align:middle!important}
     .table-responsive{overflow-x:auto}
 
     .status-box{width:26px;height:26px;border-radius:4px;border:1px solid rgba(255,255,255,.06);display:inline-block}
@@ -72,20 +72,19 @@
       <a href="https://x.com/PetrAnto12" target="_blank" rel="noopener">@PetrAnto12</a>
     </div>
 
-    <div class="d-flex align-items-center justify-content-between mb-3 sticky-top sticky-top-bg px-2 py-2 rounded-3">
+    <div class="d-flex align-items-center justify-content-between mb-2 sticky-top sticky-top-bg px-2 py-2 rounded-3">
       <div>
         <h1 class="h4 mb-0">Airdrop Farming Tracker</h1>
         <div class="subhead">Mode sombre • Auto-tick au clic • Confirmation manuelle • Local + Cloud (Supabase) • Routine Score</div>
       </div>
       <div class="controls">
+        <button id="toggleAllBtn" class="btn btn-outline-light btn-sm">Expand all</button>
         <button id="resetTodayBtn" class="btn btn-outline-secondary btn-sm">Reset today</button>
         <button id="resetAllBtn" class="btn btn-outline-danger btn-sm">Reset all</button>
-
         <button id="exportBtn" class="btn btn-outline-primary btn-sm">Export</button>
         <label class="btn btn-outline-primary btn-sm mb-0">
           Import <input id="importInput" type="file" accept="application/json" hidden>
         </label>
-
         <button id="sbAccountBtn" class="btn btn-success btn-sm">Account (Email)</button>
       </div>
     </div>
@@ -163,60 +162,83 @@
     let IS_AUTH = false;
     let REGISTERED_AT = null;
 
-    // ====== DONNÉES (catégories + sites) ======
-    // cat: 'SocialFi', 'Quests', 'DeFi', 'Identity', 'NFT/Pass', 'Fantasy', 'Waitlists'
+    // ====== DONNÉES — catégories et sites ======
+    // Order: SocialFi/InfoFi → Web3 Quests → Fantasy
     const PROJECTS = [
-      // SocialFi
-      { cat:'SocialFi', key:'kaito', name:'Kaito (Yaps)', url:'https://yaps.kaito.ai/referral/1382662710396080133', desc:'AI/social research app',
-        routine:['Post 1 yap or valuable reply','Engage: like/repost 3 items','Complete 1 quest for XP','Track topics/alerts']},
-      { cat:'SocialFi', key:'klout', name:'Klout.gg', url:'https://klout.gg/', desc:'Social points tracker', referralNote:'Referral: “petranto 🧬”', copyText:'petranto 🧬',
-        routine:['Market: open/close 1 position','Post quality content (Klout)','Shout referral once','Chaser: play & win 1 time']},
-      { cat:'SocialFi', key:'fundamental', name:'Fundamental.lol', url:'https://fundamental.lol/r/?node=PetrAnto12-5mu', desc:'Onchain social hub',
-        routine:['Visit daily & check-in','Engage with 3 feeds/posts','Complete 1 mission','Track node/referrals']},
-      { cat:'SocialFi', key:'xeetBoost', name:'Xeet Boost', url:'https://www.xeet.ai/boost/PetrAnto12', desc:'Boost tasks (Xeet)',
-        routine:['Do 1–2 boosts','Verify credit applied','Optional: 1 booster tweet','Check cooldowns']},
-      { cat:'SocialFi', key:'bantr', name:'Bantr', url:'https://beta.bantr.fun?ic=1UB6N36', desc:'Engagement quests',
-        routine:['Open daily quests','Vote/comment 3×','Submit picks/predictions','Claim points']},
-      { cat:'SocialFi', key:'edgenAura', name:'Edgen Aura', url:'https://www.edgen.tech/aura/PetrAnto12', desc:'Creator aura / social score',
-        routine:['Check daily actions & claim','Complete 1 interaction/quest','Share referral once','Review leaderboard']},
+      /* -------------------- SocialFi / InfoFi -------------------- */
+      { cat:'SocialFi/InfoFi', key:'xeet', name:'Xeet', url:'https://www.xeet.ai/refer/PetrAnto12',
+        desc:'SocialFi focus on Quality content (Signal > Noise)',
+        routine:['Create Quality content','Refer Quality users','Check profile','Play tournaments']},
 
-      // Quests
-      { cat:'Quests', key:'galxe', name:'Galxe', url:'https://app.galxe.com/hub/invite?code=GICyJr43Nj1NJrZqi4fhOdcjt4V_avTgEEJxuu-AC0=', desc:'Quest & airdrop hub',
+      { cat:'SocialFi/InfoFi', key:'kaito', name:'Kaito (Yaps)', url:'https://yaps.kaito.ai/referral/1382662710396080133',
+        desc:'SocialFi leader. Mindshare and data market and launchpad.',
+        routine:['Look for Top & Emerging Yapper feed and engage with recent posts','Check Airdrop and Earn Campaign','Stake $Kaito','Post Quality content >once a day!']},
+
+      { cat:'SocialFi/InfoFi', key:'klout', name:'Klout.gg', url:'https://klout.gg/',
+        desc:'Attention Market', referralNote:'Referral: “petranto 🧬”', copyText:'petranto 🧬',
+        routine:['Market: open/close 1 position','Post quality content (Klout)','Shout referral once','Chaser: play & win']},
+
+      { cat:'SocialFi/InfoFi', key:'cookieFun', name:'Cookie.fun', url:'https://www.cookie.fun/profile',
+        desc:'Capital-mindshare connections.',
+        routine:['Post Quality content about Campaign Projects','Refer users','Use/Trade AI agents','Stake/Lock $Cookie','Complete daily tasks']},
+
+      { cat:'SocialFi/InfoFi', key:'ethos', name:'Ethos', url:'https://app.ethos.network/',
+        desc:'SocialFi Web3 Reputation',
+        routine:['One review per day','Buy/Sell votes','Invite','Link wallets and socials']},
+
+      { cat:'SocialFi/InfoFi', key:'bantr', name:'Bantr', url:'https://beta.bantr.fun?ic=1UB6N36',
+        desc:'SocialFi and Product Usage',
+        routine:['Refer users','Post Quality content about Campaign Projects','Engage with Leaderboard projects']},
+
+      { cat:'SocialFi/InfoFi', key:'mindoshare', name:'Mindoshare.ai', url:'https://mindoshare.ai/kol?ref=cmev63nqn01mllr3wtpn2whcm',
+        desc:'SocialFi',
+        routine:['Create content to complete tasks','Refer users','Complete tasks on X']},
+
+      { cat:'SocialFi/InfoFi', key:'wallchain', name:'Wallchain (Quacks)', url:'https://quacks.app/?ref=PetrAnto12',
+        desc:'SocialFi',
+        routine:['Post Quality content on selected projects','Link reward wallets','Refer users','Claim Quacks']},
+
+      { cat:'SocialFi/InfoFi', key:'fundamental', name:'Fundamental.lol', url:'https://fundamental.lol/r/?node=PetrAnto12-5mu',
+        desc:'Onchain social hub',
+        routine:['Visit daily & check-in','Mint your passport','Invite Quality people to grow your branch','Check/Add wallets with HL eco activity','Give Kudos','Get Kudos','Find community code']},
+
+      { cat:'SocialFi/InfoFi', key:'kudoswap', name:'KudoSwap', url:'https://kudoswap.com/PetrAnto12',
+        desc:'SocialFi and Tokens',
+        routine:['Give Kudos','Get Kudos','Find community code']},
+
+      /* -------------------- Web3 Quests -------------------- */
+      { cat:'Web3 Quests', key:'galxe', name:'Galxe', url:'https://app.galxe.com/hub/invite?code=GICyJr43Nj1NJrZqi4fhOdcjt4V_avTgEEJxuu-AC0=',
+        desc:'Quest & airdrop hub',
         routine:['Pick 1–2 quick quests','Complete steps & verify','Claim OAT/points','Scan new campaigns']},
-      { cat:'Quests', key:'cookieFun', name:'Cookie.fun', url:'https://www.cookie.fun/profile', desc:'Quests & mini-games',
-        routine:['Check daily tasks','Play 1 mini-game/spin','Claim streak rewards','Look for multipliers']},
-      { cat:'Quests', key:'wallchain', name:'Wallchain (Quacks)', url:'https://quacks.app/?ref=PetrAnto12', desc:'Referral/points portal',
-        routine:['Open dashboard & check-in','Finish 1 boost/quest','Share referral if relevant','Verify points']},
-      { cat:'Quests', key:'addicted', name:'Addicted.fun', url:'https://addicted.fun', desc:'Daily tasks & games', referralNote:'Invite code', copyText:'IHMJC4DK',
-        routine:['Daily & quick tasks','Finish 1–3 quests','Claim streak/bonus','Check events']},
-      { cat:'Quests', key:'mindoshare', name:'Mindoshare.ai', url:'https://mindoshare.ai/kol?ref=cmev63nqn01mllr3wtpn2whcm', desc:'KOL tasks & referrals',
-        routine:['Pick 1 KOL task','Execute & capture proof','Submit; confirm status','Watch leaderboard']},
-      { cat:'Quests', key:'consumerfi', name:'ConsumerFi', url:'https://www.consumerfi.ai/app?referral_code=PVZcXvqV', desc:'ConsumerFi quests',
-        routine:['Daily check-in','Do 1 survey/quiz','Share invite once','Check rewards queue']},
 
-      // DeFi
-      { cat:'DeFi', key:'kudoswap', name:'KudoSwap', url:'https://kudoswap.com/PetrAnto12', desc:'Swap & quests',
-        routine:['Do a tiny swap','Add/remove tiny LP','Complete 1 quest action','Claim points / check streak']},
+      { cat:'Web3 Quests', key:'consumerfi', name:'ConsumerFi', url:'https://www.consumerfi.ai/app?referral_code=PVZcXvqV',
+        desc:'ConsumerFi quests',
+        routine:['Daily check-in & tasks','Refer users','Complete training tasks','Claim credits']},
 
-      // Identity / Profile
-      { cat:'Identity', key:'ethos', name:'Ethos', url:'https://app.ethos.network/', desc:'Web3 profile & quests',
-        routine:['Complete 1 quest','Connect wallet/verify socials','Refresh bio/links','Claim available rewards']},
+      { cat:'Web3 Quests', key:'astranovaBP', name:'Astranova BlackPass', url:'https://blackpass.astranova.world?referral_code=6ed940ede64b',
+        desc:'SocialFi quests',
+        routine:['Daily Spin','Refer users','Complete tasks','Update Black Pass NFT']},
 
-      // NFT / Pass
-      { cat:'NFT/Pass', key:'astranovaBP', name:'Astranova BlackPass', url:'https://blackpass.astranova.world?referral_code=6ed940ede64b', desc:'NFT pass portal',
-        routine:['Open pass dashboard','1 mission/mint if live','Track pass progress','Claim rewards']},
+      { cat:'Web3 Quests', key:'edgenAura', name:'Edgen Aura', url:'https://www.edgen.tech/aura/PetrAnto12',
+        desc:'AI tools for Monitoring and Trading of Crypto and Stocks',
+        routine:['Perform quest tasks & claim','Refer users','Use tools','Post about tokens & stocks and mention Edgen','Register']},
 
-      // Fantasy / Trading
-      { cat:'Fantasy', key:'fantasyTop', name:'FantasyTop', url:'https://fantasy.top?ref=petranto12', desc:'Fantasy trading of creators',
-        routine:['Daily claim/check-in','Trade 1 card or refresh lineup','Engage 3 creator profiles','Claim rewards / keep streak']},
+      { cat:'Web3 Quests', key:'addicted', name:'Addicted.fun Invite code', url:'https://addicted.fun',
+        desc:'On-chain PlaytoEarn',
+        routine:['Invite','Not much to do yet…']},
 
-      // Waitlists / Early access
-      { cat:'Waitlists', key:'rallyWait', name:'Rally.fun Waitlist', url:'https://waitlist.rally.fun/joinme/PetrAnto12', desc:'Rally early access',
-        routine:['Confirm email & profile','Share link once/day','Check rank & boosts','Collect updates/newsletter']},
+      { cat:'Web3 Quests', key:'rallyWait', name:'Rally.fun Waitlist', url:'https://waitlist.rally.fun/joinme/PetrAnto12',
+        desc:'SocialFi Marketing Tool',
+        routine:['Confirm email & profile','Refer users','Wait/check for more activities']},
 
-      // Engagement tools
-      { cat:'Quests', key:'addplus', name:'AddPlus.org', url:'https://addplus.org/boost/PetrAnto12', desc:'Engagement boosters',
-        routine:['Run 1 boost','Engage as required','Verify points credited','Check credits/balance']}
+      /* -------------------- Fantasy -------------------- */
+      { cat:'Fantasy', key:'fantasyTop', name:'FantasyTop', url:'https://fantasy.top?ref=petranto12',
+        desc:'Fantasy trading of creators',
+        routine:['Clout: Daily claim/check-in','Core: Trade cards / Register Decks','Engage 3 creator profiles','Free: Claim rewards / keep streak']},
+
+      { cat:'Fantasy', key:'footballFun', name:'Football.fun', url:'https://pro.football.fun/login/?referral_code=UWM2GXU9V8O',
+        desc:'Fantasy football',
+        routine:['Complete Tasks','Trade Players','Join Team','Invite users']}
     ];
 
     // ====== PÉRIODES (anti-chronologiques) ======
@@ -231,13 +253,13 @@
     const dayDiff = (a,b)=> Math.floor((toDateOnly(b) - toDateOnly(a)) / 86400000);
 
     // anti-chronological helpers
-    const lastNDaysDesc=(n)=>Array.from({length:n},(_,i)=>addDays(new Date(),-(i+1))); // yesterday, -2, ...
+    const lastNDaysDesc=(n)=>Array.from({length:n},(_,i)=>addDays(new Date(),-(i+1)));
     const lastNWeeksDesc=(n)=>Array.from({length:n},(_,i)=>{const now=new Date();const end=addDays(now,-7*i);const start=addDays(now,-7*(i+1));return {start,end};});
     const lastNMonthsDesc=(n)=>Array.from({length:n},(_,i)=>{const now=new Date();const ref=new Date(now.getFullYear(),now.getMonth()-(i+1),1);const start=new Date(ref.getFullYear(),ref.getMonth(),1);const end=new Date(ref.getFullYear(),ref.getMonth()+1,1);return {start,end,label:start.toLocaleString('en',{month:'long'})};});
     const lastNQuartersDesc=(n)=>{const out=[];const now=new Date();let q=quarterOf(now)-1,y=now.getFullYear();for(let i=0;i<n;i++){if(q===0){q=4;y-=1;}const sm=(q-1)*3;const start=new Date(y,sm,1);const end=new Date(y,sm+3,1);out.push({start,end,label:`Q${q}-${String(y).slice(-2)}`});q--; }return out;};
 
     // ====== LOCAL STORAGE ======
-    const STORAGE_KEY = 'airdropTracker.v3';
+    const STORAGE_KEY = 'airdropTracker.v4';
     const load = ()=>{try{return JSON.parse(localStorage.getItem(STORAGE_KEY))||{}}catch{return {}}};
     const save = (data)=>localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
     const ensureProj=(data,key)=>{if(!data[key]) data[key]={daily:{}}; return data[key];};
@@ -249,7 +271,6 @@
 
     // ====== ROUTINE SCORE (visible pour tous) ======
     function completionStatsForProject(key) {
-      // point de départ = date d'inscription si connue, sinon premier jour saisi, sinon aujourd'hui
       const data = load();
       const daily = (data[key] && data[key].daily) || {};
       const allDates = Object.keys(daily).sort();
@@ -296,14 +317,14 @@
     }
 
     const escapeHtml=(s='')=>s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-    const renderRoutine=(arr)=>{ if(!arr||!arr.length) return ''; const items=arr.slice(0,4).map(x=>`<li>${escapeHtml(x)}</li>`).join(''); return `<ul class="mb-0">${items}</ul>`; };
+    const renderRoutine=(arr)=>{ if(!arr||!arr.length) return ''; const items=arr.slice(0,6).map(x=>`<li>${escapeHtml(x)}</li>`).join(''); return `<ul class="mb-0">${items}</ul>`; };
 
     const makeStatusCell=(color)=>{const td=document.createElement('td'); td.className='text-center'; const div=document.createElement('div'); div.className=`status-box status-${color}`; td.appendChild(div); return td;};
     const setCellColor=(td,color)=>{const box=td.querySelector('.status-box'); if(!box) return; box.classList.remove('status-green','status-yellow','status-red'); box.classList.add(`status-${color}`);};
 
     function updateHistoryCellsForRow(key,tr){
       const days=lastNDaysDesc(PAST_DAYS), weeks=lastNWeeksDesc(PAST_WEEKS), months=lastNMonthsDesc(PAST_MONTHS), quarters=lastNQuartersDesc(PAST_QUARTERS);
-      const preHistoryCols = 3 + 1 + 2; // project, desc, routine, score, click, farm
+      const preHistoryCols = 3 + 1 + 2;
       let colIndex = preHistoryCols;
       days.forEach(d=>{const ds=`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`; setCellColor(tr.cells[colIndex++], stateToColor(getDayState(key,ds)));});
       weeks.forEach(w=>setCellColor(tr.cells[colIndex++], aggregateRange(key,w.start,w.end)));
@@ -311,26 +332,27 @@
       quarters.forEach(q=>setCellColor(tr.cells[colIndex++], aggregateRange(key,q.start,q.end)));
     }
 
-    // Build rows grouped by category
     function renderBody(){
       bodyEl.innerHTML='';
       const days=lastNDaysDesc(PAST_DAYS), weeks=lastNWeeksDesc(PAST_WEEKS), months=lastNMonthsDesc(PAST_MONTHS), quarters=lastNQuartersDesc(PAST_QUARTERS);
 
-      // group by category
-      const cats = [...new Set(PROJECTS.map(p=>p.cat))];
-      cats.forEach(cat=>{
-        // category header row
+      const catOrder = ['SocialFi/InfoFi','Web3 Quests','Fantasy'];
+      catOrder.forEach(cat=>{
+        const items = PROJECTS.filter(p=>p.cat===cat);
+        if (!items.length) return;
+
+        // category header
         const catTr = document.createElement('tr');
         catTr.className = 'cat-row collapsed';
         catTr.dataset.catHeader = cat;
         catTr.innerHTML = `<td colspan="${3+1+2 + days.length + weeks.length + months.length + quarters.length}" class="fw-semibold">
           <span class="chev me-2">▸</span>${cat}
-          <span class="badge bg-secondary cat-badge ms-2">${PROJECTS.filter(p=>p.cat===cat).length}</span>
+          <span class="badge bg-secondary cat-badge ms-2">${items.length}</span>
         </td>`;
         bodyEl.appendChild(catTr);
 
-        // project rows
-        PROJECTS.filter(p=>p.cat===cat).forEach(p=>{
+        // rows
+        items.forEach(p=>{
           const tr=document.createElement('tr'); tr.dataset.cat = cat; tr.dataset.hidden="1";
 
           // Project
@@ -353,7 +375,7 @@
           // Routine
           const tdRoutine=document.createElement('td'); tdRoutine.className='routine-col'; tdRoutine.innerHTML=renderRoutine(p.routine); tr.appendChild(tdRoutine);
 
-          // Routine Score (everyone)
+          // Routine Score
           const tdScore = document.createElement('td'); tdScore.className='score-col';
           const s = completionStatsForProject(p.key);
           tdScore.innerHTML = `
@@ -367,12 +389,11 @@
             </div>`;
           tr.appendChild(tdScore);
 
-          // Today: Click
+          // Today
           const tdClick=document.createElement('td'); tdClick.className='text-center';
           const cbClick=document.createElement('input'); cbClick.type='checkbox'; cbClick.className='form-check-input'; cbClick.id=`click-${p.key}`; cbClick.setAttribute('readonly','readonly');
           cbClick.checked=getDayState(p.key,today()).clicked; tdClick.appendChild(cbClick); tr.appendChild(tdClick);
 
-          // Today: Farm
           const tdFarm=document.createElement('td'); tdFarm.className='text-center';
           const cbFarm=document.createElement('input'); cbFarm.type='checkbox'; cbFarm.className='form-check-input'; cbFarm.id=`farm-${p.key}`;
           cbFarm.checked=getDayState(p.key,today()).farmed;
@@ -388,7 +409,7 @@
           bodyEl.appendChild(tr);
         });
 
-        // toggle show/hide
+        // toggle show/hide per category
         catTr.addEventListener('click', ()=>{
           const open = catTr.classList.contains('collapsed');
           catTr.classList.toggle('collapsed', !open);
@@ -401,11 +422,21 @@
     const showToast=(msg)=>{const tb=document.getElementById('toastBody'); tb.textContent=msg; const toast=new bootstrap.Toast(document.getElementById('toast')); toast.show();};
 
     // ====== BOUTONS ======
+    document.getElementById('toggleAllBtn').addEventListener('click', ()=>{
+      const btn = document.getElementById('toggleAllBtn');
+      const expand = btn.textContent.trim().toLowerCase().includes('expand');
+      document.querySelectorAll('tr.cat-row').forEach(catTr=>{
+        const cat = catTr.dataset.catHeader;
+        catTr.classList.toggle('collapsed', !expand);
+        document.querySelectorAll(`tr[data-cat="${cat}"]`).forEach(r=>r.dataset.hidden = expand ? "0" : "1");
+      });
+      btn.textContent = expand ? 'Collapse all' : 'Expand all';
+    });
+
     document.getElementById('resetTodayBtn').addEventListener('click',()=>{
       const data=load(); const t=today();
       PROJECTS.forEach(p=>{ if(data[p.key]?.daily?.[t]) data[p.key].daily[t]={clicked:false,farmed:false};});
-      save(data);
-      renderBody(); showToast('Today reset.');
+      save(data); renderBody(); showToast('Today reset.');
     });
     document.getElementById('resetAllBtn').addEventListener('click',()=>{
       if(!confirm('This will erase ALL saved history for this tracker. Continue?')) return;
@@ -438,16 +469,12 @@
       const authArea = document.getElementById('sbAuthArea');
       const userArea = document.getElementById('sbUserArea');
       if (user) {
-        IS_AUTH = true;
-        authArea.classList.add('d-none'); userArea.classList.remove('d-none');
+        IS_AUTH = true; authArea.classList.add('d-none'); userArea.classList.remove('d-none');
         document.getElementById('sbUserEmail').textContent = user.email || '(no email)';
-        await upsertProfile(user);
-        await loadProfile(user);
+        await upsertProfile(user); await loadProfile(user);
       } else {
-        IS_AUTH = false;
-        authArea.classList.remove('d-none'); userArea.classList.add('d-none');
-        REGISTERED_AT = null;
-        renderHead(); renderBody();
+        IS_AUTH = false; authArea.classList.remove('d-none'); userArea.classList.add('d-none');
+        REGISTERED_AT = null; renderHead(); renderBody();
       }
     }
 
