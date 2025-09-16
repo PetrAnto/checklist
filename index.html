@@ -16,24 +16,27 @@
     .sticky-top-bg{background:var(--panel);box-shadow:0 2px 16px rgba(0,0,0,.6);border:1px solid var(--border)}
     .subhead{color:var(--muted)}
 
+    /* Table theme */
     .table{
       --bs-table-bg:var(--panel);--bs-table-color:var(--text);
       --bs-table-striped-bg:var(--panel-2);--bs-table-striped-color:var(--text);
       --bs-table-border-color:var(--border);
     }
     .table thead th{background:var(--panel-2);border-color:var(--border);text-align:center;vertical-align:middle}
+    .table td,.table th{padding:.35rem .4rem} /* tighter overall */
     .project-cell a{text-decoration:underline}
     .project-col{min-width:220px}
     .desc-col{color:var(--muted);font-size:.9rem;white-space:normal;vertical-align:middle!important}
     .routine-col{font-size:.9rem;vertical-align:middle!important}
     .routine-col ul{margin-bottom:0;padding-left:1.2rem}
-    .routine-col li{margin-bottom:.15rem}
-    .today-col{width:72px;text-align:center}
-    .history-col{width:40px;text-align:center}
+    .routine-col li{margin-bottom:.12rem}
+    .today-col{width:52px;text-align:center}     /* was 72px */
+    .history-col{width:30px;text-align:center}   /* was 40px */
     .score-col{min-width:200px;vertical-align:middle!important}
     .table-responsive{overflow-x:auto}
 
-    .status-box{width:26px;height:26px;border-radius:4px;border:1px solid rgba(255,255,255,.06);display:inline-block}
+    /* Smaller status boxes to compact the band */
+    .status-box{width:18px;height:18px;border-radius:3px;border:1px solid rgba(255,255,255,.06);display:inline-block}
     .status-green{background:#21c35e} .status-yellow{background:#f1c40f} .status-red{background:#e74c3c}
     .legend .status-box{width:18px;height:18px;vertical-align:text-bottom}
 
@@ -43,19 +46,23 @@
     .controls .btn{margin-right:.5rem}
 
     /* Banner: smaller on desktop (~2/3 of previous) */
-    .banner-wrap{
-      margin:12px auto 6px;border-radius:12px;overflow:hidden;border:1px solid var(--border);background:#000;
-      width:44vw;max-width:940px;
-    }
+    .banner-wrap{ margin:12px auto 6px;border-radius:12px;overflow:hidden;border:1px solid var(--border);background:#000;
+      width:44vw;max-width:940px; }
     .banner-wrap img{width:100%;height:auto;display:block}
     .banner-meta{width:44vw;max-width:940px;margin:6px auto 12px;text-align:center;color:var(--muted);font-size:.95rem}
     @media (max-width:991.98px){.banner-wrap{width:100%}.banner-meta{width:100%}}
 
-    /* Category rows (collapsible) */
-    .cat-row{background:var(--panel-2)!important;cursor:pointer;user-select:none}
-    .cat-row .chev{transition:transform .2s ease}
-    .cat-row.collapsed .chev{transform:rotate(-90deg)}
+    /* Category header row (collapsible) */
+    .cat-row{background:var(--panel-2)!important;user-select:none}
+    .cat-row td{padding:.45rem .6rem}
+    .cat-title{display:flex;align-items:center;gap:.6rem;flex-wrap:wrap}
+    .cat-toggle{cursor:pointer;display:inline-block;width:1rem;text-align:center}
     .cat-badge{font-size:.75rem}
+    .cat-desc{color:var(--muted);font-weight:400;font-size:.9rem}
+    .cat-score{margin-left:auto;display:flex;align-items:center;gap:.5rem}
+    .cat-score .progress{width:140px;height:8px}
+
+    /* Rows visibility */
     tr[data-cat]{display:table-row;}
     tr[data-hidden="1"]{display:none;}
   </style>
@@ -90,7 +97,7 @@
       </div>
     </div>
 
-    <!-- Legend + Notes (now above the table, English) -->
+    <!-- Legend + Notes -->
     <div class="legend alert alert-dark border-secondary py-2 mb-2">
       <span class="me-3"><span class="status-box status-red me-1"></span> No click and no farm</span>
       <span class="me-3"><span class="status-box status-yellow me-1"></span> Click but no farm confirmed</span>
@@ -194,7 +201,7 @@
   <!-- App -->
   <script>
     /* ===== Donation addresses — replace with your real wallets ===== */
-    const DONATE_ETH_ADDRESS = '0x8ed6b33043470497b6803eF126234Ebb0d764E44'; // works for Ethereum & Base
+    const DONATE_ETH_ADDRESS = '0x8ed6b33043470497b6803eF126234Ebb0d764E44';
     const DONATE_SOL_ADDRESS = '9rcGbiGFab8enU7ixKh6ai1iPbEu6zVb4hvnVpdN8gDA';
 
     // ====== SUPABASE CONFIG ======
@@ -206,7 +213,7 @@
     let IS_AUTH = false;
     let REGISTERED_AT = null;
 
-    // ====== DATA (kept from your last version) ======
+    // ====== DATA ======
     const PROJECTS = [
       /* SocialFi / InfoFi */
       { cat:'SocialFi/InfoFi', key:'xeet', name:'Xeet', url:'https://www.xeet.ai/refer/PetrAnto12',
@@ -287,6 +294,7 @@
 
     // ====== LOCAL STORAGE ======
     const STORAGE_KEY = 'airdropTracker.v4';
+    const CAT_STATE_KEY = 'airdrop.catState.v1';  // <- persist collapse state
     const load = ()=>{try{return JSON.parse(localStorage.getItem(STORAGE_KEY))||{}}catch{return {}}};
     const save = (data)=>localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
     const ensureProj=(data,key)=>{if(!data[key]) data[key]={daily:{}}; return data[key];};
@@ -311,6 +319,18 @@
       }
       const pct = Math.round(100 * (completed / totalDays));
       return { pct, completed, totalDays, since: `${reg.getFullYear()}-${pad(reg.getMonth()+1)}-${pad(reg.getDate())}` };
+    }
+
+    function completionStatsForCategory(catName){
+      const projs = PROJECTS.filter(p=>p.cat===catName);
+      let sumCompleted=0, sumTotal=0;
+      for(const p of projs){
+        const s = completionStatsForProject(p.key);
+        sumCompleted += s.completed;
+        sumTotal     += s.totalDays;
+      }
+      const pct = sumTotal ? Math.round(100 * (sumCompleted / sumTotal)) : 0;
+      return { pct, completed:sumCompleted, totalDays:sumTotal };
     }
 
     // ====== Render table ======
@@ -359,28 +379,51 @@
       quarters.forEach(q=>setCellColor(tr.cells[colIndex++], aggregateRange(key,q.start,q.end)));
     }
 
+    /* collapse state helpers */
+    const getCatState = () => { try{ return JSON.parse(localStorage.getItem(CAT_STATE_KEY))||{} }catch{ return {} } };
+    const setCatState = (s) => localStorage.setItem(CAT_STATE_KEY, JSON.stringify(s));
+
     function renderBody(){
       bodyEl.innerHTML='';
       const days=lastNDaysDesc(PAST_DAYS), weeks=lastNWeeksDesc(PAST_WEEKS), months=lastNMonthsDesc(PAST_MONTHS), quarters=lastNQuartersDesc(PAST_QUARTERS);
+      const totalCols = (3+1+2) + days.length + weeks.length + months.length + quarters.length;
 
       const catOrder = ['SocialFi/InfoFi','Web3 Quests','Fantasy'];
+      const state = getCatState();
+
       catOrder.forEach(cat=>{
         const items = PROJECTS.filter(p=>p.cat===cat);
         if (!items.length) return;
 
-        // category header
+        /* category header with names + score */
+        const names = items.map(i=>i.name).join(', ');
+        const score = completionStatsForCategory(cat);
+
         const catTr = document.createElement('tr');
-        catTr.className = 'cat-row collapsed';
+        catTr.className = 'cat-row';
         catTr.dataset.catHeader = cat;
-        catTr.innerHTML = `<td colspan="${3+1+2 + days.length + weeks.length + months.length + quarters.length}" class="fw-semibold">
-          <span class="chev me-2">▸</span>${cat}
-          <span class="badge bg-secondary cat-badge ms-2">${items.length}</span>
-        </td>`;
+
+        const collapsed = state[cat] === true;  // true => collapsed
+        const arrow = collapsed ? '▶' : '▼';
+
+        catTr.innerHTML = `
+          <td colspan="${totalCols}">
+            <div class="cat-title">
+              <span class="cat-toggle" data-cat="${cat}">${arrow}</span>
+              <span class="fw-semibold">${cat}</span>
+              <span class="cat-desc">— ${escapeHtml(names)}</span>
+              <span class="badge bg-secondary cat-badge">${items.length}</span>
+              <span class="cat-score ms-auto">
+                <small class="text-secondary">${score.pct}%</small>
+                <div class="progress"><div class="progress-bar bg-success" style="width:${score.pct}%"></div></div>
+              </span>
+            </div>
+          </td>`;
         bodyEl.appendChild(catTr);
 
-        // rows
+        /* rows */
         items.forEach(p=>{
-          const tr=document.createElement('tr'); tr.dataset.cat = cat; tr.dataset.hidden="1";
+          const tr=document.createElement('tr'); tr.dataset.cat = cat; tr.dataset.hidden = collapsed ? "1" : "0";
 
           const projectCell=document.createElement('td'); projectCell.className='project-cell';
           const a=document.createElement('a'); a.href=p.url; a.textContent=p.name; a.target='_blank'; a.rel='noopener';
@@ -429,27 +472,42 @@
           bodyEl.appendChild(tr);
         });
 
-        catTr.addEventListener('click', ()=>{
-          const open = catTr.classList.contains('collapsed');
-          catTr.classList.toggle('collapsed', !open);
-          document.querySelectorAll(`tr[data-cat="${cat}"]`).forEach(r=>r.dataset.hidden = open ? "0" : "1");
+        /* toggle behavior + persistence */
+        catTr.querySelector('.cat-toggle').addEventListener('click', ()=>{
+          const st = getCatState();
+          const willCollapse = !(st[cat] === true);  // toggle
+          st[cat] = willCollapse;                    // true means collapsed
+          setCatState(st);
+          renderBody(); // re-render to refresh arrow & visibility
+          refreshToggleAllButton();
         });
       });
+
+      refreshToggleAllButton();
     }
 
     // ====== Toast ======
     const showToast=(msg)=>{const tb=document.getElementById('toastBody'); tb.textContent=msg; const toast=new bootstrap.Toast(document.getElementById('toast')); toast.show();};
 
     // ====== Buttons ======
+    function refreshToggleAllButton(){
+      const st = getCatState();
+      const cats = ['SocialFi/InfoFi','Web3 Quests','Fantasy'].filter(c=>PROJECTS.some(p=>p.cat===c));
+      const allCollapsed = cats.every(c=>st[c]===true);
+      const allExpanded  = cats.every(c=>st[c]!==true);
+      const btn = document.getElementById('toggleAllBtn');
+      btn.textContent = allExpanded ? 'Collapse all' : 'Expand all';
+    }
+
     document.getElementById('toggleAllBtn').addEventListener('click', ()=>{
       const btn = document.getElementById('toggleAllBtn');
       const expand = btn.textContent.trim().toLowerCase().includes('expand');
-      document.querySelectorAll('tr.cat-row').forEach(catTr=>{
-        const cat = catTr.dataset.catHeader;
-        catTr.classList.toggle('collapsed', !expand);
-        document.querySelectorAll(`tr[data-cat="${cat}"]`).forEach(r=>r.dataset.hidden = expand ? "0" : "1");
+      const st = getCatState();
+      ['SocialFi/InfoFi','Web3 Quests','Fantasy'].forEach(cat=>{
+        st[cat] = expand ? false : true; // false => expanded, true => collapsed
       });
-      btn.textContent = expand ? 'Collapse all' : 'Expand all';
+      setCatState(st);
+      renderBody();
     });
 
     document.getElementById('resetTodayBtn').addEventListener('click',()=>{
@@ -571,7 +629,5 @@
     function init(){ renderHead(); renderBody(); refreshSbAuthUI(); }
     init();
   </script>
-
-  <!-- Supabase SQL (unchanged) -->
 </body>
 </html>
