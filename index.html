@@ -23,21 +23,22 @@
       --bs-table-border-color:var(--border);
     }
     .table thead th{background:var(--panel-2);border-color:var(--border);text-align:center;vertical-align:middle}
-    .table td,.table th{padding:.35rem .4rem} /* tighter overall */
+    .table td,.table th{padding:.35rem .4rem}
     .project-cell a{text-decoration:underline}
     .project-col{min-width:220px}
     .desc-col{color:var(--muted);font-size:.9rem;white-space:normal;vertical-align:middle!important}
     .routine-col{font-size:.9rem;vertical-align:middle!important}
     .routine-col ul{margin-bottom:0;padding-left:1.2rem}
     .routine-col li{margin-bottom:.12rem}
-    .today-col{width:52px;text-align:center}     /* was 72px */
-    .history-col{width:30px;text-align:center}   /* was 40px */
+    .today-col{width:52px;text-align:center}
+    .history-col{width:30px;text-align:center}
     .score-col{min-width:200px;vertical-align:middle!important}
     .table-responsive{overflow-x:auto}
 
-    /* Smaller status boxes to compact the band */
+    /* Status boxes (compact) */
     .status-box{width:18px;height:18px;border-radius:3px;border:1px solid rgba(255,255,255,.06);display:inline-block}
     .status-green{background:#21c35e} .status-yellow{background:#f1c40f} .status-red{background:#e74c3c}
+    .status-grey{background:#6b7280}
     .legend .status-box{width:18px;height:18px;vertical-align:text-bottom}
 
     .note-badge{font-size:.70rem}
@@ -45,7 +46,11 @@
     .code-badge{cursor:pointer}
     .controls .btn{margin-right:.5rem}
 
-    /* Banner: smaller on desktop (~2/3 of previous) */
+    /* Inactive (not tracked) rows */
+    tr.inactive{opacity:.5; filter:grayscale(.8)}
+    td.inactive-cell .status-box{background:#6b7280!important}
+
+    /* Banner */
     .banner-wrap{ margin:12px auto 6px;border-radius:12px;overflow:hidden;border:1px solid var(--border);background:#000;
       width:44vw;max-width:940px; }
     .banner-wrap img{width:100%;height:auto;display:block}
@@ -294,22 +299,68 @@
 
     // ====== LOCAL STORAGE ======
     const STORAGE_KEY = 'airdropTracker.v4';
-    const CAT_STATE_KEY = 'airdrop.catState.v1';  // <- persist collapse state
+    const CAT_STATE_KEY = 'airdrop.catState.v1';
     const load = ()=>{try{return JSON.parse(localStorage.getItem(STORAGE_KEY))||{}}catch{return {}}};
     const save = (data)=>localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-    const ensureProj=(data,key)=>{if(!data[key]) data[key]={daily:{}}; return data[key];};
+    const ensureProj=(data,key)=>{if(!data[key]) data[key]={daily:{}, active:true}; return data[key];};
 
+    // active tracking flag
+    function getActive(key){ const data = load(); return data[key]?.active !== false; }
+    function setActive(key,val){ const data=load(); ensureProj(data,key).active = !!val; save(data); }
+
+    // day state
     const setTodayState=(key,patch)=>{const data=load();const proj=ensureProj(data,key);const t=today(); if(!proj.daily[t]) proj.daily[t]={clicked:false,farmed:false}; Object.assign(proj.daily[t],patch); save(data);};
     const getDayState=(key,dateStr)=>{const data=load();return (data[key]&&data[key].daily&&data[key].daily[dateStr])||{clicked:false,farmed:false}};
     const stateToColor=(s)=>(s.farmed&&s.clicked)?'green':(s.clicked?'yellow':'red');
-    const aggregateRange=(key,start,end)=>{const d=new Date(start);let anyC=false,anyF=false;while(d<end){const ds=`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;const s=getDayState(key,ds);anyC ||= s.clicked; anyF ||= (s.clicked && s.farmed); d.setDate(d.getDate()+1);} if(anyF) return 'green'; if(anyC) return 'yellow'; return 'red';};
 
-    // ====== Routine Score ======
+    // ========== 100% RULE STATS + TOOLTIP HELPERS ==========
+    function windowStatsDays(key, start, end){
+      // returns {color, clickedDays, farmedDays, totalDays}
+      let total=0, clicked=0, farmed=0;
+      for(let d=new Date(start); d<end; d.setDate(d.getDate()+1)){
+        total++;
+        const ds=`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+        const s=getDayState(key, ds);
+        if (s.clicked) clicked++;
+        if (s.clicked && s.farmed) farmed++;
+      }
+      let color='red';
+      if (total>0 && farmed===total) color='green';
+      else if (clicked>0 || farmed>0) color='yellow';
+      return { color, clickedDays:clicked, farmedDays:farmed, totalDays:total };
+    }
+
+    function monthBounds(dt){
+      const start = new Date(dt.getFullYear(), dt.getMonth(), 1);
+      const end   = new Date(dt.getFullYear(), dt.getMonth()+1, 1);
+      return {start,end};
+    }
+
+    function windowStatsQuarterMonths(key, start, end){
+      // count months fully green within [start,end)
+      let totalMonths=0, greenMonths=0;
+      let cursor=new Date(start);
+      while(cursor<end){
+        const {start:ms, end:me} = monthBounds(cursor);
+        if (ms>=end) break;
+        totalMonths++;
+        const ds=windowStatsDays(key, ms, me);
+        if (ds.totalDays>0 && ds.farmedDays===ds.totalDays) greenMonths++;
+        cursor = me;
+      }
+      let color='red';
+      if (greenMonths===totalMonths && totalMonths>0) color='green';
+      else if (greenMonths>0) color='yellow';
+      return { color, greenMonths, totalMonths };
+    }
+
+    // ====== Routine Score (per project & per category, active-only for category) ======
     function completionStatsForProject(key) {
       const data = load();
       const daily = (data[key] && data[key].daily) || {};
       const allDates = Object.keys(daily).sort();
-      let reg = REGISTERED_AT ? toDateOnly(REGISTERED_AT) : (allDates.length ? toDateOnly(new Date(allDates[0])) : toDateOnly(new Date()));
+      let reg = REGISTERED_AT ? toDateOnly(REGISTERED_AT)
+               : (allDates.length ? toDateOnly(new Date(allDates[0])) : toDateOnly(new Date()));
       const tdy = toDateOnly(new Date());
       const totalDays = Math.max(1, dayDiff(reg, tdy) + 1);
       let completed = 0;
@@ -321,16 +372,13 @@
       return { pct, completed, totalDays, since: `${reg.getFullYear()}-${pad(reg.getMonth()+1)}-${pad(reg.getDate())}` };
     }
 
+    function projectPct(key){ return completionStatsForProject(key).pct || 0; }
+
     function completionStatsForCategory(catName){
-      const projs = PROJECTS.filter(p=>p.cat===catName);
-      let sumCompleted=0, sumTotal=0;
-      for(const p of projs){
-        const s = completionStatsForProject(p.key);
-        sumCompleted += s.completed;
-        sumTotal     += s.totalDays;
-      }
-      const pct = sumTotal ? Math.round(100 * (sumCompleted / sumTotal)) : 0;
-      return { pct, completed:sumCompleted, totalDays:sumTotal };
+      const projs = PROJECTS.filter(p=>p.cat===catName && getActive(p.key));
+      if (!projs.length) return { pct:0, completed:0, totalDays:0 };
+      const avg = Math.round(projs.reduce((sum,p)=>sum+projectPct(p.key), 0) / projs.length);
+      return { pct: avg };
     }
 
     // ====== Render table ======
@@ -366,22 +414,72 @@
     const escapeHtml=(s='')=>s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
     const renderRoutine=(arr)=>{ if(!arr||!arr.length) return ''; const items=arr.slice(0,6).map(x=>`<li>${escapeHtml(x)}</li>`).join(''); return `<ul class="mb-0">${items}</ul>`; };
 
-    const makeStatusCell=(color)=>{const td=document.createElement('td'); td.className='text-center'; const div=document.createElement('div'); div.className=`status-box status-${color}`; td.appendChild(div); return td;};
-    const setCellColor=(td,color)=>{const box=td.querySelector('.status-box'); if(!box) return; box.classList.remove('status-green','status-yellow','status-red'); box.classList.add(`status-${color}`);};
+    function makeStatusCell(color, title=''){
+      const td=document.createElement('td'); td.className='text-center'; if(title) td.title=title;
+      const div=document.createElement('div'); div.className=`status-box status-${color}`; td.appendChild(div);
+      return td;
+    }
+    function setCellStatus(td, color, title=''){
+      td.title = title || '';
+      const box=td.querySelector('.status-box'); if(!box) return;
+      box.classList.remove('status-green','status-yellow','status-red','status-grey');
+      box.classList.add(`status-${color}`);
+    }
 
-    function updateHistoryCellsForRow(key,tr){
+    function updateHistoryCellsForRow(key,tr, cat){
       const days=lastNDaysDesc(PAST_DAYS), weeks=lastNWeeksDesc(PAST_WEEKS), months=lastNMonthsDesc(PAST_MONTHS), quarters=lastNQuartersDesc(PAST_QUARTERS);
       const preHistoryCols = 3 + 1 + 2;
       let colIndex = preHistoryCols;
-      days.forEach(d=>{const ds=`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`; setCellColor(tr.cells[colIndex++], stateToColor(getDayState(key,ds)));});
-      weeks.forEach(w=>setCellColor(tr.cells[colIndex++], aggregateRange(key,w.start,w.end)));
-      months.forEach(m=>setCellColor(tr.cells[colIndex++], aggregateRange(key,m.start,m.end)));
-      quarters.forEach(q=>setCellColor(tr.cells[colIndex++], aggregateRange(key,q.start,q.end)));
+
+      // days
+      days.forEach(d=>{
+        const ds=`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+        const s=getDayState(key,ds);
+        setCellStatus(tr.cells[colIndex++], stateToColor(s));
+      });
+
+      // weeks (tooltip in days)
+      weeks.forEach(w=>{
+        const st = windowStatsDays(key, w.start, w.end);
+        const pct = st.totalDays ? Math.round(100*st.farmedDays/st.totalDays) : 0;
+        const tip = `${st.farmedDays}/${st.totalDays} days farmed (${pct}%)`;
+        setCellStatus(tr.cells[colIndex++], st.color, tip);
+      });
+
+      // months (tooltip in days)
+      months.forEach(m=>{
+        const st = windowStatsDays(key, m.start, m.end);
+        const pct = st.totalDays ? Math.round(100*st.farmedDays/st.totalDays) : 0;
+        const tip = `${st.farmedDays}/${st.totalDays} days farmed (${pct}%)`;
+        setCellStatus(tr.cells[colIndex++], st.color, tip);
+      });
+
+      // quarters (tooltip in months)
+      quarters.forEach(q=>{
+        const st = windowStatsQuarterMonths(key, q.start, q.end);
+        const pct = st.totalMonths ? Math.round(100*st.greenMonths/st.totalMonths) : 0;
+        const tip = `${st.greenMonths}/${st.totalMonths} months fully farmed (${pct}%)`;
+        setCellStatus(tr.cells[colIndex++], st.color, tip);
+      });
+
+      // repaint grey if inactive
+      repaintInactiveHistory(key, tr);
+      if (cat) renderCategoryScore(cat);
     }
 
-    /* collapse state helpers */
+    // collapse state helpers
     const getCatState = () => { try{ return JSON.parse(localStorage.getItem(CAT_STATE_KEY))||{} }catch{ return {} } };
     const setCatState = (s) => localStorage.setItem(CAT_STATE_KEY, JSON.stringify(s));
+
+    function renderCategoryScore(cat){
+      const score = completionStatsForCategory(cat);
+      const el = document.getElementById(`cat-score-${cat}`);
+      if (!el) return;
+      el.innerHTML = `
+        <small class="text-secondary">${score.pct}%</small>
+        <div class="progress"><div class="progress-bar ${score.pct>=70?'bg-success':score.pct>=30?'bg-warning':'bg-danger'}" style="width:${score.pct}%"></div></div>
+      `;
+    }
 
     function renderBody(){
       bodyEl.innerHTML='';
@@ -395,39 +493,49 @@
         const items = PROJECTS.filter(p=>p.cat===cat);
         if (!items.length) return;
 
-        /* category header with names + score */
         const names = items.map(i=>i.name).join(', ');
-        const score = completionStatsForCategory(cat);
-
-        const catTr = document.createElement('tr');
-        catTr.className = 'cat-row';
-        catTr.dataset.catHeader = cat;
-
-        const collapsed = state[cat] === true;  // true => collapsed
+        const header = document.createElement('tr');
+        header.className = 'cat-row';
+        header.dataset.catHeader = cat;
+        const collapsed = state[cat] === true;
         const arrow = collapsed ? '▶' : '▼';
-
-        catTr.innerHTML = `
+        header.innerHTML = `
           <td colspan="${totalCols}">
             <div class="cat-title">
               <span class="cat-toggle" data-cat="${cat}">${arrow}</span>
               <span class="fw-semibold">${cat}</span>
               <span class="cat-desc">— ${escapeHtml(names)}</span>
               <span class="badge bg-secondary cat-badge">${items.length}</span>
-              <span class="cat-score ms-auto">
-                <small class="text-secondary">${score.pct}%</small>
-                <div class="progress"><div class="progress-bar bg-success" style="width:${score.pct}%"></div></div>
-              </span>
+              <span class="cat-score ms-auto" id="cat-score-${cat}"></span>
             </div>
           </td>`;
-        bodyEl.appendChild(catTr);
+        bodyEl.appendChild(header);
+        renderCategoryScore(cat);
 
-        /* rows */
         items.forEach(p=>{
           const tr=document.createElement('tr'); tr.dataset.cat = cat; tr.dataset.hidden = collapsed ? "1" : "0";
+          const isActive = getActive(p.key);
+          if (!isActive) tr.classList.add('inactive');
 
+          // Project cell with Track toggle
           const projectCell=document.createElement('td'); projectCell.className='project-cell';
+          const trackWrap = document.createElement('span');
+          trackWrap.className = 'form-check form-switch form-switch-sm d-inline-flex align-items-center me-2';
+          const track = document.createElement('input');
+          track.type='checkbox'; track.className='form-check-input'; track.role='switch';
+          track.checked = isActive; track.title='Include in score';
+          track.addEventListener('change', ()=>{
+            setActive(p.key, track.checked);
+            tr.classList.toggle('inactive', !track.checked);
+            cbClick.disabled = cbFarm.disabled = !track.checked;
+            repaintInactiveHistory(p.key, tr);
+            renderCategoryScore(cat);
+          });
+          trackWrap.appendChild(track);
+          projectCell.appendChild(trackWrap);
+
           const a=document.createElement('a'); a.href=p.url; a.textContent=p.name; a.target='_blank'; a.rel='noopener';
-          a.addEventListener('click',()=>{ setTodayState(p.key,{clicked:true}); const cb=document.querySelector(`#click-${p.key}`); if(cb) cb.checked=true; updateHistoryCellsForRow(p.key,tr); });
+          a.addEventListener('click',()=>{ setTodayState(p.key,{clicked:true}); const cb=document.querySelector(`#click-${p.key}`); if(cb) cb.checked=true; updateHistoryCellsForRow(p.key,tr,cat); });
           projectCell.appendChild(a);
 
           if(p.referralNote || p.copyText){
@@ -454,6 +562,7 @@
             </div>`;
           tr.appendChild(tdScore);
 
+          // Today
           const tdClick=document.createElement('td'); tdClick.className='text-center';
           const cbClick=document.createElement('input'); cbClick.type='checkbox'; cbClick.className='form-check-input'; cbClick.id=`click-${p.key}`; cbClick.setAttribute('readonly','readonly');
           cbClick.checked=getDayState(p.key,today()).clicked; tdClick.appendChild(cbClick); tr.appendChild(tdClick);
@@ -461,29 +570,77 @@
           const tdFarm=document.createElement('td'); tdFarm.className='text-center';
           const cbFarm=document.createElement('input'); cbFarm.type='checkbox'; cbFarm.className='form-check-input'; cbFarm.id=`farm-${p.key}`;
           cbFarm.checked=getDayState(p.key,today()).farmed;
-          cbFarm.addEventListener('change',()=>{ setTodayState(p.key,{farmed:cbFarm.checked}); updateHistoryCellsForRow(p.key,tr); });
+          cbFarm.addEventListener('change',()=>{ setTodayState(p.key,{farmed:cbFarm.checked}); updateHistoryCellsForRow(p.key,tr,cat); });
           tdFarm.appendChild(cbFarm); tr.appendChild(tdFarm);
 
-          days.forEach(d=>{const ds=`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`; tr.appendChild(makeStatusCell(stateToColor(getDayState(p.key,ds))));});
-          weeks.forEach(w=>tr.appendChild(makeStatusCell(aggregateRange(p.key,w.start,w.end))));
-          months.forEach(m=>tr.appendChild(makeStatusCell(aggregateRange(p.key,m.start,m.end))));
-          quarters.forEach(q=>tr.appendChild(makeStatusCell(aggregateRange(p.key,q.start,q.end))));
+          cbClick.disabled = cbFarm.disabled = !isActive;
+
+          // Days
+          lastNDaysDesc(PAST_DAYS).forEach(d=>{
+            const ds=`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+            const color = stateToColor(getDayState(p.key,ds));
+            const td = makeStatusCell(color);
+            tr.appendChild(td);
+          });
+
+          // Weeks (tooltip in days)
+          lastNWeeksDesc(PAST_WEEKS).forEach(w=>{
+            const st = windowStatsDays(p.key, w.start, w.end);
+            const pct = st.totalDays ? Math.round(100*st.farmedDays/st.totalDays) : 0;
+            const tip = `${st.farmedDays}/${st.totalDays} days farmed (${pct}%)`;
+            const td = makeStatusCell(st.color, tip);
+            tr.appendChild(td);
+          });
+
+          // Months (tooltip in days)
+          lastNMonthsDesc(PAST_MONTHS).forEach(m=>{
+            const st = windowStatsDays(p.key, m.start, m.end);
+            const pct = st.totalDays ? Math.round(100*st.farmedDays/st.totalDays) : 0;
+            const tip = `${st.farmedDays}/${st.totalDays} days farmed (${pct}%)`;
+            const td = makeStatusCell(st.color, tip);
+            tr.appendChild(td);
+          });
+
+          // Quarters (tooltip in months)
+          lastNQuartersDesc(PAST_QUARTERS).forEach(q=>{
+            const st = windowStatsQuarterMonths(p.key, q.start, q.end);
+            const pct = st.totalMonths ? Math.round(100*st.greenMonths/st.totalMonths) : 0;
+            const tip = `${st.greenMonths}/${st.totalMonths} months fully farmed (${pct}%)`;
+            const td = makeStatusCell(st.color, tip);
+            tr.appendChild(td);
+          });
 
           bodyEl.appendChild(tr);
+          repaintInactiveHistory(p.key, tr);
         });
 
-        /* toggle behavior + persistence */
-        catTr.querySelector('.cat-toggle').addEventListener('click', ()=>{
+        // toggle behavior + persistence
+        header.querySelector('.cat-toggle').addEventListener('click', ()=>{
           const st = getCatState();
-          const willCollapse = !(st[cat] === true);  // toggle
-          st[cat] = willCollapse;                    // true means collapsed
+          const willCollapse = !(st[cat] === true);
+          st[cat] = willCollapse;
           setCatState(st);
-          renderBody(); // re-render to refresh arrow & visibility
+          renderBody();
           refreshToggleAllButton();
         });
       });
 
       refreshToggleAllButton();
+    }
+
+    function repaintInactiveHistory(key, tr){
+      const active = getActive(key);
+      const startIdx = 3 + 1 + 2;
+      for (let i=startIdx; i<tr.cells.length; i++){
+        const td = tr.cells[i];
+        if (!active){
+          td.classList.add('inactive-cell');
+          setCellStatus(td, 'grey', td.title);
+        } else {
+          td.classList.remove('inactive-cell');
+          // color is already set by updateHistoryCellsForRow/render
+        }
+      }
     }
 
     // ====== Toast ======
@@ -614,13 +771,14 @@
     function mergeData(a={}, b={}) {
       const out = JSON.parse(JSON.stringify(a || {}));
       for (const key of Object.keys(b || {})) {
-        if (!out[key]) out[key] = { daily:{} };
+        if (!out[key]) out[key] = { daily:{}, active: (b[key].active!==false) };
         const bd = (b[key] && b[key].daily) || {};
         for (const d of Object.keys(bd)) {
           const r = bd[d] || {clicked:false,farmed:false};
           const l = (out[key].daily && out[key].daily[d]) || {clicked:false,farmed:false};
           out[key].daily[d] = { clicked: !!(l.clicked || r.clicked), farmed: !!(l.farmed || r.farmed) };
         }
+        if (typeof b[key].active !== 'undefined') out[key].active = !!b[key].active;
       }
       return out;
     }
