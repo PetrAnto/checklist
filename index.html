@@ -10,13 +10,13 @@
     :root{
       --bg:#0b0d10; --panel:#0f1115; --panel-2:#111827; --text:#e5e7eb;
       --muted:#9ca3af; --border:#1f2937; --link:#93c5fd; --link-hover:#bfdbfe;
-      --tierS:#ff6b6b; --tierA:#f6a86e; --tierB:#f5d06b; --tierC:#f6f679; --tierD:#b8f67a; --tierF:#79ef7a;
     }
     html,body{height:100%} body{background:var(--bg);color:var(--text)}
     a{color:var(--link)} a:hover{color:var(--link-hover)}
     .sticky-top-bg{background:var(--panel);box-shadow:0 2px 16px rgba(0,0,0,.6);border:1px solid var(--border)}
     .subhead{color:var(--muted)}
 
+    /* Table theme */
     .table{
       --bs-table-bg:var(--panel);--bs-table-color:var(--text);
       --bs-table-striped-bg:var(--panel-2);--bs-table-striped-color:var(--text);
@@ -35,6 +35,7 @@
     .score-col{min-width:200px;vertical-align:middle!important}
     .table-responsive{overflow-x:auto}
 
+    /* Status boxes (compact) */
     .status-box{width:18px;height:18px;border-radius:3px;border:1px solid rgba(255,255,255,.06);display:inline-block}
     .status-green{background:#21c35e} .status-yellow{background:#f1c40f} .status-red{background:#e74c3c}
     .status-grey{background:#6b7280}
@@ -45,15 +46,18 @@
     .code-badge{cursor:pointer}
     .controls .btn{margin-right:.5rem}
 
+    /* Inactive (not tracked) rows */
     tr.inactive{opacity:.5; filter:grayscale(.8)}
     td.inactive-cell .status-box{background:#6b7280!important}
 
+    /* Banner */
     .banner-wrap{ margin:12px auto 6px;border-radius:12px;overflow:hidden;border:1px solid var(--border);background:#000;
       width:44vw;max-width:940px; }
     .banner-wrap img{width:100%;height:auto;display:block}
     .banner-meta{width:44vw;max-width:940px;margin:6px auto 12px;text-align:center;color:var(--muted);font-size:.95rem}
     @media (max-width:991.98px){.banner-wrap{width:100%}.banner-meta{width:100%}}
 
+    /* Category header row (collapsible) */
     .cat-row{background:var(--panel-2)!important;user-select:none}
     .cat-row td{padding:.45rem .6rem}
     .cat-title{display:flex;align-items:center;gap:.6rem;flex-wrap:wrap}
@@ -63,28 +67,32 @@
     .cat-score{margin-left:auto;display:flex;align-items:center;gap:.5rem}
     .cat-score .progress{width:140px;height:8px}
 
+    /* Embedded Tier board */
+    .tier-row td{background:transparent}
+    .tier-board{display:flex;flex-direction:column;gap:6px}
+    .tier-lane{display:flex;align-items:center;gap:10px;padding:4px 6px;border-radius:8px;background:rgba(255,255,255,0.02);border:1px solid var(--border)}
+    .tier-label{width:28px;min-width:28px;height:28px;line-height:28px;text-align:center;border-radius:6px;font-weight:700;color:#111}
+    .tier-S{background:#fb7185} /* rose */
+    .tier-A{background:#f59e0b} /* amber */
+    .tier-B{background:#fbbf24}
+    .tier-C{background:#fde047}
+    .tier-D{background:#86efac}
+    .tier-F{background:#4ade80}
+    .tier-items{display:flex;flex-wrap:wrap;gap:6px}
+    .tier-chip{padding:2px 8px;border-radius:999px;border:1px solid var(--border);background:var(--panel);color:var(--text);font-size:.8rem;text-decoration:none}
+    .tier-chip:hover{background:#1a2234}
+    .tier-chip small{color:var(--muted)}
+    .tier-chip.inactive{opacity:.55;filter:grayscale(.6)}
+
+    /* Rows visibility */
     tr[data-cat]{display:table-row;}
     tr[data-hidden="1"]{display:none;}
-
-    /* Tiers */
-    .tiers-wrap{border:1px solid var(--border);border-radius:12px;background:var(--panel);padding:.6rem .6rem 0;margin-bottom:10px}
-    .tiers-head{display:flex;align-items:center;gap:.6rem;margin:.1rem .2rem .4rem}
-    .tiers-head .title{font-weight:600}
-    .tiers{display:flex;flex-direction:column;gap:.4rem;margin-bottom:.6rem}
-    .tier-row{display:flex;align-items:stretch;border:1px solid var(--border);border-radius:10px;overflow:hidden}
-    .tier-label{width:54px;display:flex;align-items:center;justify-content:center;font-weight:700;color:#111;padding:.4rem 0}
-    .tier-lane{flex:1;display:flex;flex-wrap:wrap;gap:.35rem;padding:.35rem .5rem;background:var(--panel-2);min-height:42px}
-    .chip{display:inline-flex;align-items:center;gap:.45rem;background:#0f131a;border:1px solid var(--border);padding:.18rem .5rem;border-radius:999px}
-    .chip a{color:var(--text);text-decoration:none}
-    .chip .pct{font-size:.75rem;opacity:.8}
-    .chip.inactive{opacity:.5;filter:grayscale(.8)}
-    .tier-legend{font-size:.85rem;color:var(--muted)}
-    .tier-legend .b{font-weight:600;color:#ddd}
   </style>
 </head>
 <body>
   <div class="container-fluid py-3">
 
+    <!-- Banner -->
     <div class="banner-wrap">
       <img src="banner.png" alt="Banner" onerror="this.closest('.banner-wrap').remove();document.querySelector('.banner-meta')?.remove();">
     </div>
@@ -111,26 +119,24 @@
       </div>
     </div>
 
+    <!-- Legend + Notes -->
     <div class="legend alert alert-dark border-secondary py-2 mb-2">
-      <span class="me-3"><span class="status-box status-red me-1"></span> No click and no farm</span>
-      <span class="me-3"><span class="status-box status-yellow me-1"></span> Click but no farm confirmed</span>
-      <span class="me-3"><span class="status-box status-green me-1"></span> Click and farm OK</span>
-      <div class="small mt-1 text-secondary">
+      <div class="mb-1">
+        <span class="me-3"><span class="status-box status-red me-1"></span> No click and no farm</span>
+        <span class="me-3"><span class="status-box status-yellow me-1"></span> Click but no farm confirmed</span>
+        <span class="me-3"><span class="status-box status-green me-1"></span> Click and farm OK</span>
+      </div>
+      <div class="small text-secondary">
         Notes: “Click” auto-checks when you open the project link; “Farm” is manual.
-        Week/Month/Quarter windows are computed from the daily log. Cloud sync via Supabase (magic link).
+        Week/Month/Quarter windows use the 100% rule: a window is <strong>green only if every day is green</strong>, yellow if partially green, red if 0%.
+        Cloud sync via Supabase (magic link).
+      </div>
+      <div class="small text-secondary mt-1">
+        Tier legend (by Routine Score): <strong>S</strong> ≥ 90 • <strong>A</strong> ≥ 75 • <strong>B</strong> ≥ 60 •
+        <strong>C</strong> ≥ 45 • <strong>D</strong> ≥ 25 • <strong>F</strong> &lt; 25.
       </div>
     </div>
 
-    <!-- Tier legend -->
-    <div class="tier-legend mb-2">
-      <span class="b">Tier legend:</span>
-      S ≥ 90% • A ≥ 75% • B ≥ 60% • C ≥ 40% • D ≥ 20% • F &lt; 20%. Inactive projects are grey and excluded from category %.
-    </div>
-
-    <!-- Tier Boards -->
-    <div id="tierBoards" class="mb-3"></div>
-
-    <!-- Table -->
     <div class="table-responsive">
       <table id="trackerTable" class="table table-bordered table-striped align-middle">
         <thead id="trackerHead"></thead>
@@ -217,20 +223,26 @@
     </div>
   </div>
 
+  <!-- Libs -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
+  <!-- App -->
   <script>
+    /* ===== Donation addresses — replace with your real wallets ===== */
     const DONATE_ETH_ADDRESS = '0x8ed6b33043470497b6803eF126234Ebb0d764E44';
     const DONATE_SOL_ADDRESS = '9rcGbiGFab8enU7ixKh6ai1iPbEu6zVb4hvnVpdN8gDA';
 
+    // ====== SUPABASE CONFIG ======
     const SUPABASE_URL = 'https://naksqjsuivlalltonldj.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5ha3NxanN1aXZsYWxsdG9ubGRqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY4MjgxNzYsImV4cCI6MjA3MjQwNDE3Nn0.8LttdRBSqP-zYPeUJpMGNIVly7h5mJ6MoZfP3i1-EOs';
     const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+    // ====== FLAGS AUTH ======
     let IS_AUTH = false;
     let REGISTERED_AT = null;
 
+    // ====== DATA ======
     const PROJECTS = [
       /* SocialFi / InfoFi */
       { cat:'SocialFi/InfoFi', key:'xeet', name:'Xeet', url:'https://www.xeet.ai/refer/PetrAnto12',
@@ -238,118 +250,85 @@
         routine:['Create Quality content','Refer Quality users','Check profile','Play tournaments']},
       { cat:'SocialFi/InfoFi', key:'kaito', name:'Kaito (Yaps)', url:'https://yaps.kaito.ai/referral/1382662710396080133',
         desc:'SocialFi leader. Mindshare and data market and launchpad.',
-        routine:['Engage Top/Emerging feed','Check Earn campaign','Stake $Kaito','Post quality daily']},
+        routine:['Look for Top & Emerging Yapper feed and engage with recent posts','Check Airdrop and Earn Campaign','Stake $Kaito','Post Quality content >once a day!']},
       { cat:'SocialFi/InfoFi', key:'klout', name:'Klout.gg', url:'https://klout.gg/', desc:'Attention Market',
         referralNote:'Referral: “petranto 🧬”', copyText:'petranto 🧬',
-        routine:['Open/close 1 position (Market)','Post content (Klout)','Share referral (Profile)','Play Chaser']},
+        routine:['Market: open/close 1 position','Post quality content (Klout)','Shout referral once','Chaser: play & win']},
       { cat:'SocialFi/InfoFi', key:'cookieFun', name:'Cookie.fun', url:'https://www.cookie.fun/profile',
         desc:'Capital-mindshare connections.',
-        routine:['Post about campaign projects','Refer users','Use/Trade AI agents','Stake/Lock $COOKIE','Daily tasks']},
+        routine:['Post Quality content about Campaign Projects','Refer users','Use/Trade AI agents','Stake/Lock $Cookie','Complete daily tasks']},
       { cat:'SocialFi/InfoFi', key:'ethos', name:'Ethos', url:'https://app.ethos.network/',
-        desc:'Web3 reputation',
-        routine:['“Write a Review”','Buy/Sell votes (Markets)','Invite (Profile)','Link wallets & socials (Settings)']},
+        desc:'SocialFi Web3 Reputation',
+        routine:['One review per day','Buy/Sell votes','Invite','Link wallets and socials']},
       { cat:'SocialFi/InfoFi', key:'bantr', name:'Bantr', url:'https://beta.bantr.fun?ic=1UB6N36',
-        desc:'SocialFi and product usage',
-        routine:['Refer users','Post quality content','Engage leaderboard projects']},
+        desc:'SocialFi and Product Usage',
+        routine:['Refer users','Post Quality content about Campaign Projects','Engage with Leaderboard projects']},
       { cat:'SocialFi/InfoFi', key:'mindoshare', name:'Mindoshare.ai', url:'https://mindoshare.ai/kol?ref=cmev63nqn01mllr3wtpn2whcm',
         desc:'SocialFi',
-        routine:['Complete “Create Post” tasks','Share on X (Tasks)','Invite (Referrals)']},
+        routine:['Create content to complete tasks','Refer users','Complete tasks on X']},
       { cat:'SocialFi/InfoFi', key:'wallchain', name:'Wallchain (Quacks)', url:'https://quacks.app/?ref=PetrAnto12',
         desc:'SocialFi',
-        routine:['Post on selected projects','Link reward wallets','Refer users','Claim “Quacks” (Rewards)']},
+        routine:['Post Quality content on selected projects','Link reward wallets','Refer users','Claim Quacks']},
       { cat:'SocialFi/InfoFi', key:'fundamental', name:'Fundamental.lol', url:'https://fundamental.lol/r/?node=PetrAnto12-5mu',
         desc:'Onchain social hub',
-        routine:['Daily “Check-in”','Mint passport','Invite quality people','Add HL eco wallets','Give/Get Kudos']},
+        routine:['Visit daily & check-in','Mint your passport','Invite Quality people to grow your branch','Check/Add wallets with HL eco activity','Give Kudos','Get Kudos','Find community code']},
       { cat:'SocialFi/InfoFi', key:'kudoswap', name:'KudoSwap', url:'https://kudoswap.com/PetrAnto12',
-        desc:'SocialFi and tokens',
-        routine:['Give Kudos','Get Kudos','Enter community code (Profile)']},
+        desc:'SocialFi and Tokens',
+        routine:['Give Kudos','Get Kudos','Find community code']},
 
       /* Web3 Quests */
       { cat:'Web3 Quests', key:'galxe', name:'Galxe', url:'https://app.galxe.com/hub/invite?code=GICyJr43Nj1NJrZqi4fhOdcjt4V_avTgEEJxuu-AC0=',
         desc:'Quest & airdrop hub',
-        routine:['Pick 1–2 quick quests (Explore)','Complete & verify','Claim OAT/points','Scan new campaigns']},
+        routine:['Pick 1–2 quick quests','Complete steps & verify','Claim OAT/points','Scan new campaigns']},
       { cat:'Web3 Quests', key:'consumerfi', name:'ConsumerFi', url:'https://www.consumerfi.ai/app?referral_code=PVZcXvqV',
         desc:'ConsumerFi quests',
-        routine:['Daily “Check-in”','Complete “Training” tasks','Invite (Referrals)','Claim credits (Wallet)']},
+        routine:['Daily check-in & tasks','Refer users','Complete training tasks','Claim credits']},
       { cat:'Web3 Quests', key:'astranovaBP', name:'Astranova BlackPass', url:'https://blackpass.astranova.world?referral_code=6ed940ede64b',
         desc:'SocialFi quests',
-        routine:['Daily “Spin”','Finish tasks (Quests)','Invite (Referrals)','Update Black Pass NFT']},
+        routine:['Daily Spin','Refer users','Complete tasks','Update Black Pass NFT']},
       { cat:'Web3 Quests', key:'edgenAura', name:'Edgen Aura', url:'https://www.edgen.tech/aura/PetrAnto12',
-        desc:'AI tools for trading & monitoring',
-        routine:['Complete “Aura” quests','Use tools (Dashboard)','Refer users','Post token/stock notes']},
+        desc:'AI tools for Monitoring and Trading of Crypto and Stocks',
+        routine:['Perform quest tasks & claim','Refer users','Use tools','Post about tokens & stocks and mention Edgen','Register']},
       { cat:'Web3 Quests', key:'addicted', name:'Addicted.fun Invite code', url:'https://addicted.fun',
-        desc:'On-chain P2E',
-        routine:['Invite friends','Check new tasks weekly']},
+        desc:'On-chain PlaytoEarn',
+        routine:['Invite','Not much to do yet…']},
       { cat:'Web3 Quests', key:'rallyWait', name:'Rally.fun Waitlist', url:'https://waitlist.rally.fun/joinme/PetrAnto12',
-        desc:'SocialFi marketing tool',
-        routine:['Confirm email/profile','Refer users','Watch for activities']},
+        desc:'SocialFi Marketing Tool',
+        routine:['Confirm email & profile','Refer users','Wait/check for more activities']},
 
       /* Fantasy */
       { cat:'Fantasy', key:'fantasyTop', name:'FantasyTop', url:'https://fantasy.top?ref=petranto12',
         desc:'Fantasy trading of creators',
-        routine:['Clout: daily “Claim/Check-in”','Core: trade & submit decks','Engage 3 creators','Free: keep streak']},
+        routine:['Clout: Daily claim/check-in','Core: Trade cards / Register Decks','Engage 3 creator profiles','Free: Claim rewards / keep streak']},
       { cat:'Fantasy', key:'footballFun', name:'Football.fun', url:'https://pro.football.fun/login/?referral_code=UWM2GXU9V8O',
         desc:'Fantasy football',
-        routine:['Complete tasks','Trade players','Join team','Invite users']},
+        routine:['Complete Tasks','Trade Players','Join Team','Invite users']},
 
-      /* DeFi (precise task names) */
-      { cat:'DeFi', key:'hyperlend', name:'Hyperlend', url:'https://app.hyperlend.finance/?ref=PETRANTO',
-        desc:'Lending markets & points',
-        routine:[
-          'Markets → USDC (or ETH) → “Supply”',
-          'Markets → same asset → “Borrow” small',
-          'Portfolio → “Repay” borrowed',
-          'Points → “Claim” / check leaderboard',
-          'Referrals → share link'
-        ]},
-      { cat:'DeFi', key:'felix', name:'Felix', url:'https://www.usefelix.xyz?ref=8956BB26',
-        desc:'Yield vaults & points',
-        referralNote:'Referral: 8956BB26', copyText:'8956BB26',
-        routine:[
-          'Vaults → choose vault → “Deposit”',
-          'Vaults → “Withdraw” small test',
-          'Points → “Claim”',
-          'Referrals → share code 8956BB26'
-        ]},
-      { cat:'DeFi', key:'hypurr', name:'Hypurr', url:'https://app.hypurr.fi/',
-        desc:'Restaking / yield',
-        routine:[
-          'Restake → “Deposit” LST/ETH',
-          'Rewards → “Claim”',
-          'Restake → “Reinvest/Compound” weekly'
-        ]},
-      { cat:'DeFi', key:'kinetiq', name:'Kinetiq', url:'https://kinetiq.xyz/',
-        desc:'Aggregator / staking',
-        routine:[
-          'Dashboard → connect wallet',
-          'Stake/Liquidity → “Deposit” to a strategy',
-          'Rewards → “Claim”',
-          'Governance/Boost (if shown) → vote/boost'
-        ]},
-      { cat:'DeFi', key:'hyperbeat', name:'Hyperbeat Earn', url:'https://app.hyperbeat.org/earn',
-        desc:'Earn quests + staking',
-        routine:[
-          'Earn → complete listed tasks (follow/RT/Discord)',
-          'Earn → “Claim” points',
-          'Stake (if enabled) → “Stake” / “Unstake” test'
-        ]},
-      { cat:'DeFi', key:'prjx', name:'PRJX', url:'https://www.prjx.com/@petranto',
-        desc:'Tasks/points hub',
-        routine:[
-          'Daily “Check-in”',
-          'Tasks → complete X/Discord quests',
-          'Referrals → invite quality users',
-          'Wallet → claim points'
-        ]},
-      { cat:'DeFi', key:'paradexWL', name:'Paradex WL', url:'https://app.paradex.trade/wl/astutemakerz',
-        desc:'Starknet perps — waitlist/referral',
-        routine:[
-          'WL page → “Join waitlist”',
-          'WL page → complete social tasks',
-          'Referrals → share WL link'
-        ]},
+      /* DeFi */
+      { cat:'DeFi', key:'hyperlend', name:'Hyperlend Finance', url:'https://app.hyperlend.finance/?ref=PETRANTO',
+        desc:'Lending & borrowing.',
+        routine:['Deposit collateral','Borrow small amount','Repay','Stake/Lock HLP','Claim rewards']},
+      { cat:'felix', name:'Felix', cat:'DeFi', url:'https://www.usefelix.xyz?ref=8956BB26',
+        desc:'Vaults & automated strategies.',
+        routine:['Connect wallet','Deposit to a vault','Compound/Claim','Withdraw test','Share referral']},
+      { cat:'hypurr', name:'Hypurr.fi', cat:'DeFi', url:'https://app.hypurr.fi/',
+        desc:'Yield on-chain.',
+        routine:['Deposit stable','Stake/Unstake','Claim yield','Test withdraw']},
+      { cat:'kinetiq', name:'Kinetiq', cat:'DeFi', url:'https://kinetiq.xyz/',
+        desc:'Onchain strategies.',
+        routine:['Create/join strategy','Deposit','Claim/compound','Give feedback']},
+      { cat:'hyperbeat', name:'HyperBeat Earn', cat:'DeFi', url:'https://app.hyperbeat.org/earn',
+        desc:'Stake HBT to earn.',
+        routine:['Stake HBT','Claim','Restake','Check APR changes']},
+      { cat:'prjx', name:'PRJX', cat:'DeFi', url:'https://www.prjx.com/@petranto',
+        desc:'Portfolio/positions hub.',
+        routine:['Update positions','Rebalance','Track rewards','Export/Share']},
+      { cat:'paradex', name:'Paradex (AstuteMakerz)', cat:'DeFi', url:'https://app.paradex.trade/wl/astutemakerz',
+        desc:'Perp DEX.',
+        routine:['Register AstuteMakerz referral','Deposit USDC','Place 1 trade','Claim/settle rewards']}
     ];
 
+    // ====== PERIODS ======
     const PAST_DAYS = 7, PAST_WEEKS = 4, PAST_MONTHS = 3, PAST_QUARTERS = 3;
     const pad = n => String(n).padStart(2,'0');
     const today = () => { const d=new Date(); return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`; };
@@ -365,19 +344,23 @@
     const lastNMonthsDesc=(n)=>Array.from({length:n},(_,i)=>{const now=new Date();const ref=new Date(now.getFullYear(),now.getMonth()-(i+1),1);const start=new Date(ref.getFullYear(),ref.getMonth(),1);const end=new Date(ref.getFullYear(),ref.getMonth()+1,1);return {start,end,label:start.toLocaleString('en',{month:'long'})};});
     const lastNQuartersDesc=(n)=>{const out=[];const now=new Date();let q=quarterOf(now)-1,y=now.getFullYear();for(let i=0;i<n;i++){if(q===0){q=4;y-=1;}const sm=(q-1)*3;const start=new Date(y,sm,1);const end=new Date(y,sm+3,1);out.push({start,end,label:`Q${q}-${String(y).slice(-2)}`});q--; }return out;};
 
+    // ====== LOCAL STORAGE ======
     const STORAGE_KEY = 'airdropTracker.v4';
     const CAT_STATE_KEY = 'airdrop.catState.v1';
     const load = ()=>{try{return JSON.parse(localStorage.getItem(STORAGE_KEY))||{}}catch{return {}}};
     const save = (data)=>localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
     const ensureProj=(data,key)=>{if(!data[key]) data[key]={daily:{}, active:true}; return data[key];};
 
+    // active tracking flag
     function getActive(key){ const data = load(); return data[key]?.active !== false; }
     function setActive(key,val){ const data=load(); ensureProj(data,key).active = !!val; save(data); }
 
+    // day state
     const setTodayState=(key,patch)=>{const data=load();const proj=ensureProj(data,key);const t=today(); if(!proj.daily[t]) proj.daily[t]={clicked:false,farmed:false}; Object.assign(proj.daily[t],patch); save(data);};
     const getDayState=(key,dateStr)=>{const data=load();return (data[key]&&data[key].daily&&data[key].daily[dateStr])||{clicked:false,farmed:false}};
     const stateToColor=(s)=>(s.farmed&&s.clicked)?'green':(s.clicked?'yellow':'red');
 
+    // ========== 100% RULE STATS + TOOLTIP HELPERS ==========
     function windowStatsDays(key, start, end){
       let total=0, clicked=0, farmed=0;
       for(let d=new Date(start); d<end; d.setDate(d.getDate()+1)){
@@ -392,30 +375,20 @@
       else if (clicked>0 || farmed>0) color='yellow';
       return { color, clickedDays:clicked, farmedDays:farmed, totalDays:total };
     }
-
-    function monthBounds(dt){
-      const start = new Date(dt.getFullYear(), dt.getMonth(), 1);
-      const end   = new Date(dt.getFullYear(), dt.getMonth()+1, 1);
-      return {start,end};
-    }
-
+    function monthBounds(dt){ const start=new Date(dt.getFullYear(),dt.getMonth(),1); const end=new Date(dt.getFullYear(),dt.getMonth()+1,1); return {start,end}; }
     function windowStatsQuarterMonths(key, start, end){
-      let totalMonths=0, greenMonths=0;
-      let cursor=new Date(start);
+      let totalMonths=0, greenMonths=0; let cursor=new Date(start);
       while(cursor<end){
-        const {start:ms, end:me} = monthBounds(cursor);
-        if (ms>=end) break;
-        totalMonths++;
-        const ds=windowStatsDays(key, ms, me);
+        const {start:ms,end:me}=monthBounds(cursor); if(ms>=end) break;
+        totalMonths++; const ds=windowStatsDays(key, ms, me);
         if (ds.totalDays>0 && ds.farmedDays===ds.totalDays) greenMonths++;
-        cursor = me;
+        cursor=me;
       }
-      let color='red';
-      if (greenMonths===totalMonths && totalMonths>0) color='green';
-      else if (greenMonths>0) color='yellow';
+      let color='red'; if (greenMonths===totalMonths && totalMonths>0) color='green'; else if (greenMonths>0) color='yellow';
       return { color, greenMonths, totalMonths };
     }
 
+    // ====== Routine Score (per project & per category, active-only for category) ======
     function completionStatsForProject(key) {
       const data = load();
       const daily = (data[key] && data[key].daily) || {};
@@ -441,67 +414,17 @@
       return { pct: avg };
     }
 
-    function tierForPct(p){ if(p>=90) return 'S'; if(p>=75) return 'A'; if(p>=60) return 'B'; if(p>=40) return 'C'; if(p>=20) return 'D'; return 'F'; }
-    const catOrder = ['SocialFi/InfoFi','Web3 Quests','Fantasy','DeFi'];
-    function tierColor(t){ return ({S:'var(--tierS)',A:'var(--tierA)',B:'var(--tierB)',C:'var(--tierC)',D:'var(--tierD)',F:'var(--tierF)'})[t] || '#888'; }
+    // ====== Tiers ======
+    function tierFromPct(p){ if(p>=90) return 'S'; if(p>=75) return 'A'; if(p>=60) return 'B'; if(p>=45) return 'C'; if(p>=25) return 'D'; return 'F'; }
 
-    function renderTierBoards(){
-      const wrap = document.getElementById('tierBoards');
-      wrap.innerHTML = '';
-      catOrder.forEach(cat=>{
-        const items = PROJECTS.filter(p=>p.cat===cat);
-        const byTier = {S:[],A:[],B:[],C:[],D:[],F:[]};
-        items.forEach(p=>{
-          const pct = projectPct(p.key);
-          const t = tierForPct(pct);
-          byTier[t].push({...p, pct, active: getActive(p.key)});
-        });
-        Object.keys(byTier).forEach(k=>byTier[k].sort((a,b)=>b.pct-a.pct));
-
-        const card = document.createElement('div');
-        card.className = 'tiers-wrap';
-        const score = completionStatsForCategory(cat).pct;
-        card.innerHTML = `
-          <div class="tiers-head">
-            <span class="title">${cat}</span>
-            <span class="badge bg-secondary">${items.length}</span>
-            <span class="ms-auto small text-secondary">${score}% avg of active projects</span>
-          </div>
-          <div class="tiers">
-            ${['S','A','B','C','D','F'].map(t=>{
-              const chips = byTier[t].map(p=>`
-                <span class="chip ${p.active?'':'inactive'}">
-                  <a href="${p.url}" target="_blank" rel="noopener">${p.name}</a>
-                  <span class="pct">${p.pct}%</span>
-                </span>`).join('');
-              return `
-                <div class="tier-row">
-                  <div class="tier-label" style="background:${tierColor(t)}">${t}</div>
-                  <div class="tier-lane">${chips || '<span class="text-secondary small">—</span>'}</div>
-                </div>`;
-            }).join('')}
-          </div>`;
-        wrap.appendChild(card);
-      });
-
-      wrap.querySelectorAll('.chip a').forEach(a=>{
-        a.addEventListener('click', ()=>{
-          const proj = PROJECTS.find(p=>p.url===a.getAttribute('href'));
-          if (proj){
-            setTodayState(proj.key,{clicked:true});
-            renderBody();
-            renderTierBoards();
-          }
-        });
-      });
-    }
-
+    // ====== Render table ======
     const headEl=document.getElementById('trackerHead');
     const bodyEl=document.getElementById('trackerBody');
 
     function renderHead(){
       headEl.innerHTML='';
       const days=lastNDaysDesc(PAST_DAYS), weeks=lastNWeeksDesc(PAST_WEEKS), months=lastNMonthsDesc(PAST_MONTHS), quarters=lastNQuartersDesc(PAST_QUARTERS);
+
       const tr1=document.createElement('tr');
       tr1.innerHTML = `
         <th rowspan="2" class="project-col text-center"></th>
@@ -572,10 +495,10 @@
       });
 
       repaintInactiveHistory(key, tr);
-      if (cat) renderCategoryScore(cat);
-      renderTierBoards();
+      if (cat){ renderCategoryScore(cat); renderTierRow(cat); }
     }
 
+    // collapse state helpers
     const getCatState = () => { try{ return JSON.parse(localStorage.getItem(CAT_STATE_KEY))||{} }catch{ return {} } };
     const setCatState = (s) => localStorage.setItem(CAT_STATE_KEY, JSON.stringify(s));
 
@@ -589,28 +512,79 @@
       `;
     }
 
+    function projectsForCat(cat){
+      return PROJECTS.filter(p=>p.cat===cat).map(p=>{
+        const pct = projectPct(p.key);
+        return { ...p, pct, tier: tierFromPct(pct), active: getActive(p.key) };
+      }).sort((a,b)=>b.pct-a.pct);
+    }
+
+    function buildTierBoardHTML(cat){
+      const items = projectsForCat(cat);
+      const grades = ['S','A','B','C','D','F'];
+      const lanes = grades.map(g=>{
+        const laneItems = items.filter(x=>x.tier===g);
+        const chips = laneItems.map(x=>{
+          const inactive = x.active ? '' : 'inactive';
+          return `<a href="${x.url}" target="_blank" rel="noopener" class="tier-chip ${inactive}" data-key="${x.key}" data-url="${x.url}">
+                    ${escapeHtml(x.name)} <small>(${x.pct}%)</small>
+                  </a>`;
+        }).join('') || `<span class="text-secondary small">—</span>`;
+        return `<div class="tier-lane">
+                  <div class="tier-label tier-${g}">${g}</div>
+                  <div class="tier-items">${chips}</div>
+                </div>`;
+      }).join('');
+      return `<div class="tier-board">${lanes}</div>`;
+    }
+
+    function attachTierChipHandlers(cat){
+      document.querySelectorAll(`#tier-${cssEscape(cat)} .tier-chip`).forEach(el=>{
+        el.addEventListener('click', (e)=>{
+          // open in new tab already; mark click
+          const key = el.dataset.key;
+          setTodayState(key, { clicked:true });
+          // also try to check the checkbox if present
+          const cb = document.getElementById(`click-${key}`);
+          if (cb){ cb.checked = true; }
+        });
+      });
+    }
+
+    function renderTierRow(cat){
+      const holder = document.getElementById(`tier-${cat}`);
+      if (!holder) return;
+      holder.innerHTML = buildTierBoardHTML(cat);
+      attachTierChipHandlers(cat);
+    }
+
+    // helper for querySelector escaping if cat has slashes
+    function cssEscape(s){ return s.replace(/([ #;?%&,.+*~\':"!^$[\]()=>|\/@])/g,'\\$1'); }
+
     function renderBody(){
       bodyEl.innerHTML='';
       const days=lastNDaysDesc(PAST_DAYS), weeks=lastNWeeksDesc(PAST_WEEKS), months=lastNMonthsDesc(PAST_MONTHS), quarters=lastNQuartersDesc(PAST_QUARTERS);
       const totalCols = (3+1+2) + days.length + weeks.length + months.length + quarters.length;
 
+      const catOrder = ['SocialFi/InfoFi','Web3 Quests','Fantasy','DeFi'];
       const state = getCatState();
 
       catOrder.forEach(cat=>{
         const items = PROJECTS.filter(p=>p.cat===cat);
+        if (!items.length) return;
 
+        const names = items.map(i=>i.name).join(', ');
         const header = document.createElement('tr');
         header.className = 'cat-row';
         header.dataset.catHeader = cat;
         const collapsed = state[cat] === true;
         const arrow = collapsed ? '▶' : '▼';
-        const names = items.map(i=>i.name).join(', ');
         header.innerHTML = `
           <td colspan="${totalCols}">
             <div class="cat-title">
               <span class="cat-toggle" data-cat="${cat}">${arrow}</span>
               <span class="fw-semibold">${cat}</span>
-              ${items.length ? `<span class="cat-desc">— ${escapeHtml(names)}</span>` : ''}
+              <span class="cat-desc">— ${escapeHtml(names)}</span>
               <span class="badge bg-secondary cat-badge">${items.length}</span>
               <span class="cat-score ms-auto" id="cat-score-${cat}"></span>
             </div>
@@ -618,11 +592,22 @@
         bodyEl.appendChild(header);
         renderCategoryScore(cat);
 
+        /* Tier list row (embedded) */
+        const tierTr = document.createElement('tr');
+        tierTr.className = 'tier-row';
+        tierTr.dataset.cat = cat;
+        tierTr.dataset.hidden = collapsed ? "1" : "0";
+        tierTr.innerHTML = `<td colspan="${totalCols}"><div id="tier-${cat}"></div></td>`;
+        bodyEl.appendChild(tierTr);
+        renderTierRow(cat);
+
+        /* Project rows */
         items.forEach(p=>{
           const tr=document.createElement('tr'); tr.dataset.cat = cat; tr.dataset.hidden = collapsed ? "1" : "0";
           const isActive = getActive(p.key);
           if (!isActive) tr.classList.add('inactive');
 
+          // Project cell with Track toggle
           const projectCell=document.createElement('td'); projectCell.className='project-cell';
           const trackWrap = document.createElement('span');
           trackWrap.className = 'form-check form-switch form-switch-sm d-inline-flex align-items-center me-2';
@@ -635,7 +620,7 @@
             cbClick.disabled = cbFarm.disabled = !track.checked;
             repaintInactiveHistory(p.key, tr);
             renderCategoryScore(cat);
-            renderTierBoards();
+            renderTierRow(cat);
           });
           trackWrap.appendChild(track);
           projectCell.appendChild(trackWrap);
@@ -668,6 +653,7 @@
             </div>`;
           tr.appendChild(tdScore);
 
+          // Today
           const tdClick=document.createElement('td'); tdClick.className='text-center';
           const cbClick=document.createElement('input'); cbClick.type='checkbox'; cbClick.className='form-check-input'; cbClick.id=`click-${p.key}`; cbClick.setAttribute('readonly','readonly');
           cbClick.checked=getDayState(p.key,today()).clicked; tdClick.appendChild(cbClick); tr.appendChild(tdClick);
@@ -680,6 +666,7 @@
 
           cbClick.disabled = cbFarm.disabled = !isActive;
 
+          // Days
           lastNDaysDesc(PAST_DAYS).forEach(d=>{
             const ds=`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
             const color = stateToColor(getDayState(p.key,ds));
@@ -687,6 +674,7 @@
             tr.appendChild(td);
           });
 
+          // Weeks (tooltip in days)
           lastNWeeksDesc(PAST_WEEKS).forEach(w=>{
             const st = windowStatsDays(p.key, w.start, w.end);
             const pct = st.totalDays ? Math.round(100*st.farmedDays/st.totalDays) : 0;
@@ -695,6 +683,7 @@
             tr.appendChild(td);
           });
 
+          // Months (tooltip in days)
           lastNMonthsDesc(PAST_MONTHS).forEach(m=>{
             const st = windowStatsDays(p.key, m.start, m.end);
             const pct = st.totalDays ? Math.round(100*st.farmedDays/st.totalDays) : 0;
@@ -703,6 +692,7 @@
             tr.appendChild(td);
           });
 
+          // Quarters (tooltip in months)
           lastNQuartersDesc(PAST_QUARTERS).forEach(q=>{
             const st = windowStatsQuarterMonths(p.key, q.start, q.end);
             const pct = st.totalMonths ? Math.round(100*st.greenMonths/st.totalMonths) : 0;
@@ -715,6 +705,7 @@
           repaintInactiveHistory(p.key, tr);
         });
 
+        // toggle behavior + persistence (affects tier + rows)
         header.querySelector('.cat-toggle').addEventListener('click', ()=>{
           const st = getCatState();
           const willCollapse = !(st[cat] === true);
@@ -726,7 +717,6 @@
       });
 
       refreshToggleAllButton();
-      renderTierBoards();
     }
 
     function repaintInactiveHistory(key, tr){
@@ -743,11 +733,14 @@
       }
     }
 
+    // ====== Toast ======
     const showToast=(msg)=>{const tb=document.getElementById('toastBody'); tb.textContent=msg; const toast=new bootstrap.Toast(document.getElementById('toast')); toast.show();};
 
+    // ====== Buttons ======
     function refreshToggleAllButton(){
       const st = getCatState();
-      const allExpanded  = catOrder.every(c=>st[c]!==true);
+      const cats = ['SocialFi/InfoFi','Web3 Quests','Fantasy','DeFi'].filter(c=>PROJECTS.some(p=>p.cat===c));
+      const allExpanded  = cats.every(c=>st[c]!==true);
       const btn = document.getElementById('toggleAllBtn');
       btn.textContent = allExpanded ? 'Collapse all' : 'Expand all';
     }
@@ -756,8 +749,8 @@
       const btn = document.getElementById('toggleAllBtn');
       const expand = btn.textContent.trim().toLowerCase().includes('expand');
       const st = getCatState();
-      catOrder.forEach(cat=>{
-        st[cat] = expand ? false : true;
+      ['SocialFi/InfoFi','Web3 Quests','Fantasy','DeFi'].forEach(cat=>{
+        st[cat] = expand ? false : true; // false => expanded, true => collapsed
       });
       setCatState(st);
       renderBody();
@@ -782,6 +775,7 @@
       catch{ showToast('Invalid JSON file.'); } finally{ e.target.value=''; }
     });
 
+    // Donate
     const donateModal = new bootstrap.Modal(document.getElementById('donateModal'));
     document.getElementById('donateBtn').addEventListener('click', ()=>{
       document.getElementById('evmAddr').value = DONATE_ETH_ADDRESS;
@@ -795,6 +789,7 @@
       try{ await navigator.clipboard.writeText(DONATE_SOL_ADDRESS); showToast('Solana address copied'); }catch{}
     });
 
+    // ====== Supabase Auth & Cloud ======
     const sbModal = new bootstrap.Modal(document.getElementById('sbModal'));
     document.getElementById('sbAccountBtn').addEventListener('click', async ()=>{ await refreshSbAuthUI(); sbModal.show(); });
 
@@ -861,6 +856,7 @@
 
     sb.auth.onAuthStateChange((_evt, _session)=>{ refreshSbAuthUI(); });
 
+    // ====== Merge helper ======
     function mergeData(a={}, b={}) {
       const out = JSON.parse(JSON.stringify(a || {}));
       for (const key of Object.keys(b || {})) {
@@ -876,6 +872,7 @@
       return out;
     }
 
+    // ====== Init ======
     function init(){ renderHead(); renderBody(); refreshSbAuthUI(); }
     init();
   </script>
