@@ -91,14 +91,16 @@
     .chip a{color:#e5e7eb;text-decoration:none}
     .chip a:hover{text-decoration:underline}
 
-    /* Tier legend bar */
+    /* Tier legend bar (English) */
     .tier-legend .legend-pill{display:inline-flex;align-items:center;gap:.35rem;margin-right:.6rem}
     .legend-swatch{width:12px;height:12px;border-radius:3px;display:inline-block}
 
-    /* First column tier chip */
-    .tierpill{display:inline-block;min-width:28px;padding:.15rem .45rem;border-radius:.4rem;font-weight:800;color:#111}
-    .tierpill.S{background:var(--tierS)} .tierpill.A{background:var(--tierA)}
-    .tierpill.B{background:var(--tierB)} .tierpill.C{background:var(--tierC)} .tierpill.D{background:var(--tierD)}
+    /* First column merged tier cell */
+    .tier-merge{color:#111;border-right:1px solid var(--border);overflow:hidden;
+      border-top-left-radius:10px;border-bottom-left-radius:10px;}
+    .tierbg-S{background:var(--tierS)} .tierbg-A{background:var(--tierA)}
+    .tierbg-B{background:var(--tierB)} .tierbg-C{background:var(--tierC)} .tierbg-D{background:var(--tierD)}
+    .tier-merge .inner{min-height:100%;display:flex;align-items:center;justify-content:center;font-weight:800}
   </style>
 </head>
 <body>
@@ -131,7 +133,7 @@
       </div>
     </div>
 
-    <!-- Legend + Notes + Tier legend -->
+    <!-- Legend + Notes + Tier legend (EN) -->
     <div class="legend alert alert-dark border-secondary py-2 mb-2">
       <div class="mb-1">
         <span class="me-3"><span class="status-box status-red me-1"></span> No click and no farm</span>
@@ -139,13 +141,13 @@
         <span class="me-3"><span class="status-box status-green me-1"></span> Click and farm OK</span>
       </div>
       <div class="small text-secondary mb-1">
-        Règle 100% : vert = entièrement farmé, jaune = partiel, rouge = 0%. Sync Cloud via Supabase.
+        100% rule: green = fully farmed in the window, yellow = partial, red = 0%. Cloud sync via Supabase (magic link).
       </div>
       <div class="tier-legend small">
-        <span class="legend-pill"><span class="legend-swatch" style="background:var(--tierS)"></span><strong>S</strong> Must-farm / top qualité</span>
-        <span class="legend-pill"><span class="legend-swatch" style="background:var(--tierA)"></span><strong>A</strong> Haute priorité</span>
-        <span class="legend-pill"><span class="legend-swatch" style="background:var(--tierB)"></span><strong>B</strong> Optionnel / à surveiller</span>
-        <span class="legend-pill"><span class="legend-swatch" style="background:var(--tierC)"></span><strong>C</strong> Expérimental / WL</span>
+        <span class="legend-pill"><span class="legend-swatch" style="background:var(--tierS)"></span><strong>S</strong> Must-farm / top quality</span>
+        <span class="legend-pill"><span class="legend-swatch" style="background:var(--tierA)"></span><strong>A</strong> High priority</span>
+        <span class="legend-pill"><span class="legend-swatch" style="background:var(--tierB)"></span><strong>B</strong> Optional / watchlist</span>
+        <span class="legend-pill"><span class="legend-swatch" style="background:var(--tierC)"></span><strong>C</strong> Experimental / WL</span>
         <span class="legend-pill"><span class="legend-swatch" style="background:var(--tierD)"></span><strong>D</strong> Long shots</span>
       </div>
     </div>
@@ -346,34 +348,10 @@
 
     /* ===== Quality tiers by category (manual ranking) ===== */
     const QUALITY_TIERS = {
-      'DeFi': {
-        S:['axiom','prjx'],
-        A:['hyperlend','felix'],
-        B:['hypurr','kinetiq'],
-        C:['hyperbeat','paradex'],
-        D:[]
-      },
-      'SocialFi/InfoFi': {
-        S:['kaito'],
-        A:['xeet','fundamental'],
-        B:['cookieFun','ethos','klout','wallchain'],
-        C:['mindoshare','bantr','kudoswap'],
-        D:[]
-      },
-      'Web3 Quests': {
-        S:['galxe'],
-        A:['astranovaBP','edgenAura'],
-        B:['consumerfi'],
-        C:['rallyWait','addicted'],
-        D:[]
-      },
-      'Fantasy': {
-        S:['fantasyTop'],
-        A:[],
-        B:['footballFun'],
-        C:[],
-        D:[]
-      }
+      'DeFi': { S:['axiom','prjx'], A:['hyperlend','felix'], B:['hypurr','kinetiq'], C:['hyperbeat','paradex'], D:[] },
+      'SocialFi/InfoFi': { S:['kaito'], A:['xeet','fundamental'], B:['cookieFun','ethos','klout','wallchain'], C:['mindoshare','bantr','kudoswap'], D:[] },
+      'Web3 Quests': { S:['galxe'], A:['astranovaBP','edgenAura'], B:['consumerfi'], C:['rallyWait','addicted'], D:[] },
+      'Fantasy': { S:['fantasyTop'], A:[], B:['footballFun'], C:[], D:[] }
     };
 
     // ====== PERIODS ======
@@ -473,14 +451,7 @@
     function tierOf(cat,key){
       const tiers = QUALITY_TIERS[cat] || {};
       for(const t of TIER_ORDER){ if((tiers[t]||[]).includes(key)) return t; }
-      return 'D'; // default lowest if unspecified
-    }
-    function tierColorVar(letter){
-      return letter==='S'?'var(--tierS)'
-        : letter==='A'?'var(--tierA)'
-        : letter==='B'?'var(--tierB)'
-        : letter==='C'?'var(--tierC)'
-        : 'var(--tierD)';
+      return 'D';
     }
     function tierIndex(cat,key){ return TIER_ORDER.indexOf(tierOf(cat,key)); }
 
@@ -532,7 +503,7 @@
 
     function updateHistoryCellsForRow(key,tr, cat){
       const days=lastNDaysDesc(PAST_DAYS), weeks=lastNWeeksDesc(PAST_WEEKS), months=lastNMonthsDesc(PAST_MONTHS), quarters=lastNQuartersDesc(PAST_QUARTERS);
-      let colIndex = PRE_HISTORY_COLS;
+      let colIndex = parseInt(tr.dataset.precols || "${PRE_HISTORY_COLS}");
 
       // days
       days.forEach(d=>{
@@ -565,7 +536,6 @@
         setCellStatus(tr.cells[colIndex++], st.color, tip);
       });
 
-      // repaint grey if inactive
       repaintInactiveHistory(key, tr);
       if (cat) renderCategoryScore(cat);
     }
@@ -661,117 +631,130 @@
         tierRow.appendChild(tdTier);
         bodyEl.appendChild(tierRow);
 
-        /* Project rows */
-        items.forEach(p=>{
-          const tr=document.createElement('tr'); tr.dataset.cat = cat; tr.dataset.hidden = collapsed ? "1" : "0";
-          const isActive = getActive(p.key);
-          if (!isActive) tr.classList.add('inactive');
+        /* Build groups by tier for merged first column */
+        const groups = ['S','A','B','C','D'].map(t=>({
+          t, list: items.filter(p=> tierOf(cat,p.key)===t)
+        })).filter(g=>g.list.length>0);
 
-          // Tier column (left)
-          const tLetter = tierOf(cat, p.key);
-          const tdTierLeft = document.createElement('td');
-          tdTierLeft.className = 'tier-col';
-          const pill = document.createElement('span');
-          pill.className = `tierpill ${tLetter}`;
-          pill.textContent = tLetter;
-          tdTierLeft.appendChild(pill);
-          tr.appendChild(tdTierLeft);
+        groups.forEach(g=>{
+          g.list.forEach((p, idx)=>{
+            const tr=document.createElement('tr');
+            tr.dataset.cat = cat; tr.dataset.hidden = collapsed ? "1" : "0";
+            const isActive = getActive(p.key);
+            if (!isActive) tr.classList.add('inactive');
 
-          // Project cell with Track toggle
-          const projectCell=document.createElement('td'); projectCell.className='project-cell';
-          const trackWrap = document.createElement('span');
-          trackWrap.className = 'form-check form-switch form-switch-sm d-inline-flex align-items-center me-2';
-          const track = document.createElement('input');
-          track.type='checkbox'; track.className='form-check-input'; track.role='switch';
-          track.checked = isActive; track.title='Include in score';
-          track.addEventListener('change', ()=>{
-            setActive(p.key, track.checked);
-            tr.classList.toggle('inactive', !track.checked);
-            cbClick.disabled = cbFarm.disabled = !track.checked;
-            repaintInactiveHistory(p.key, tr);
-            renderCategoryScore(cat);
-          });
-          trackWrap.appendChild(track);
-          projectCell.appendChild(trackWrap);
+            const hasTierCell = (idx===0);
+            tr.dataset.precols = hasTierCell ? PRE_HISTORY_COLS : (PRE_HISTORY_COLS - 1);
 
-          const a=document.createElement('a'); a.href=p.url; a.textContent=p.name; a.target='_blank'; a.rel='noopener';
-          a.addEventListener('click',()=>{ setTodayState(p.key,{clicked:true}); const cb=document.querySelector(`#click-${p.key}`); if(cb) cb.checked=true; updateHistoryCellsForRow(p.key,tr,cat); });
-          projectCell.appendChild(a);
+            // Tier merged cell once per group
+            if (hasTierCell){
+              const tdMerged = document.createElement('td');
+              tdMerged.className = `tier-col tier-merge tierbg-${g.t}`;
+              tdMerged.rowSpan = g.list.length;
+              const inner = document.createElement('div');
+              inner.className = 'inner';
+              inner.textContent = g.t;
+              tdMerged.appendChild(inner);
+              tr.appendChild(tdMerged);
+            }
 
-          if(p.referralNote || p.copyText){
-            const span=document.createElement('span'); span.className='badge rounded-pill text-bg-secondary ms-2 note-badge code-badge';
-            span.title=p.referralNote || 'Code'; span.textContent=p.referralNote || 'Code';
-            span.addEventListener('click', async ()=>{ if(p.copyText){ try{ await navigator.clipboard.writeText(p.copyText); showToast(`Copied: ${p.copyText}`);}catch{ showToast('Copy failed'); } }});
-            projectCell.appendChild(span);
-          }
-          tr.appendChild(projectCell);
+            // Project cell with Track toggle
+            const projectCell=document.createElement('td'); projectCell.className='project-cell';
+            const trackWrap = document.createElement('span');
+            trackWrap.className = 'form-check form-switch form-switch-sm d-inline-flex align-items-center me-2';
+            const track = document.createElement('input');
+            track.type='checkbox'; track.className='form-check-input'; track.role='switch';
+            track.checked = isActive; track.title='Include in score';
+            let cbClick, cbFarm; // will assign later
+            track.addEventListener('change', ()=>{
+              setActive(p.key, track.checked);
+              tr.classList.toggle('inactive', !track.checked);
+              if (cbClick && cbFarm){ cbClick.disabled = cbFarm.disabled = !track.checked; }
+              repaintInactiveHistory(p.key, tr);
+              renderCategoryScore(cat);
+            });
+            trackWrap.appendChild(track);
+            projectCell.appendChild(trackWrap);
 
-          const tdDesc=document.createElement('td'); tdDesc.className='desc-col'; tdDesc.textContent=p.desc || ''; tr.appendChild(tdDesc);
-          const tdRoutine=document.createElement('td'); tdRoutine.className='routine-col'; tdRoutine.innerHTML=renderRoutine(p.routine); tr.appendChild(tdRoutine);
+            const a=document.createElement('a'); a.href=p.url; a.textContent=p.name; a.target='_blank'; a.rel='noopener';
+            a.addEventListener('click',()=>{ setTodayState(p.key,{clicked:true}); const cb=document.querySelector(`#click-${p.key}`); if(cb) cb.checked=true; updateHistoryCellsForRow(p.key,tr,cat); });
+            projectCell.appendChild(a);
 
-          const tdScore = document.createElement('td'); tdScore.className='score-col';
-          const s = completionStatsForProject(p.key);
-          tdScore.innerHTML = `
-            <div class="d-flex align-items-center gap-2">
-              <div class="flex-grow-1">
-                <div class="progress" style="height:10px;">
-                  <div class="progress-bar bg-success" role="progressbar" style="width:${s.pct}%;" aria-valuenow="${s.pct}" aria-valuemin="0" aria-valuemax="100"></div>
+            if(p.referralNote || p.copyText){
+              const span=document.createElement('span'); span.className='badge rounded-pill text-bg-secondary ms-2 note-badge code-badge';
+              span.title=p.referralNote || 'Code'; span.textContent=p.referralNote || 'Code';
+              span.addEventListener('click', async ()=>{ if(p.copyText){ try{ await navigator.clipboard.writeText(p.copyText); showToast(`Copied: ${p.copyText}`);}catch{ showToast('Copy failed'); } }});
+              projectCell.appendChild(span);
+            }
+            tr.appendChild(projectCell);
+
+            const tdDesc=document.createElement('td'); tdDesc.className='desc-col'; tdDesc.textContent=p.desc || ''; tr.appendChild(tdDesc);
+            const tdRoutine=document.createElement('td'); tdRoutine.className='routine-col'; tdRoutine.innerHTML=renderRoutine(p.routine); tr.appendChild(tdRoutine);
+
+            const tdScore = document.createElement('td'); tdScore.className='score-col';
+            const s = completionStatsForProject(p.key);
+            tdScore.innerHTML = `
+              <div class="d-flex align-items-center gap-2">
+                <div class="flex-grow-1">
+                  <div class="progress" style="height:10px;">
+                    <div class="progress-bar bg-success" role="progressbar" style="width:${s.pct}%;" aria-valuenow="${s.pct}" aria-valuemin="0" aria-valuemax="100"></div>
+                  </div>
+                  <div class="small text-secondary mt-1">${s.pct}% • ${s.completed}/${s.totalDays}d since ${s.since}</div>
                 </div>
-                <div class="small text-secondary mt-1">${s.pct}% • ${s.completed}/${s.totalDays}d since ${s.since}</div>
-              </div>
-            </div>`;
-          tr.appendChild(tdScore);
+              </div>`;
+            tr.appendChild(tdScore);
 
-          // Today
-          const tdClick=document.createElement('td'); tdClick.className='text-center';
-          const cbClick=document.createElement('input'); cbClick.type='checkbox'; cbClick.className='form-check-input'; cbClick.id=`click-${p.key}`; cbClick.setAttribute('readonly','readonly');
-          cbClick.checked=getDayState(p.key,today()).clicked; tdClick.appendChild(cbClick); tr.appendChild(tdClick);
+            // Today
+            const tdClick=document.createElement('td'); tdClick.className='text-center';
+            cbClick=document.createElement('input'); cbClick.type='checkbox'; cbClick.className='form-check-input'; cbClick.id=`click-${p.key}`; cbClick.setAttribute('readonly','readonly');
+            cbClick.checked=getDayState(p.key,today()).clicked; tdClick.appendChild(cbClick); tr.appendChild(tdClick);
 
-          const tdFarm=document.createElement('td'); tdFarm.className='text-center';
-          const cbFarm=document.createElement('input'); cbFarm.type='checkbox'; cbFarm.className='form-check-input'; cbFarm.id=`farm-${p.key}`;
-          cbFarm.checked=getDayState(p.key,today()).farmed;
-          cbFarm.addEventListener('change',()=>{ setTodayState(p.key,{farmed:cbFarm.checked}); updateHistoryCellsForRow(p.key,tr,cat); });
-          tdFarm.appendChild(cbFarm); tr.appendChild(tdFarm);
+            const tdFarm=document.createElement('td'); tdFarm.className='text-center';
+            cbFarm=document.createElement('input'); cbFarm.type='checkbox'; cbFarm.className='form-check-input'; cbFarm.id=`farm-${p.key}`;
+            cbFarm.checked=getDayState(p.key,today()).farmed;
+            cbFarm.addEventListener('change',()=>{ setTodayState(p.key,{farmed:cbFarm.checked}); updateHistoryCellsForRow(p.key,tr,cat); });
+            tdFarm.appendChild(cbFarm); tr.appendChild(tdFarm);
 
-          cbClick.disabled = cbFarm.disabled = !isActive;
+            cbClick.disabled = cbFarm.disabled = !isActive;
 
-          // Days
-          lastNDaysDesc(PAST_DAYS).forEach(d=>{
-            const ds=`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
-            const color = stateToColor(getDayState(p.key,ds));
-            const td = makeStatusCell(color);
-            tr.appendChild(td);
+            // Days
+            lastNDaysDesc(PAST_DAYS).forEach(d=>{
+              const ds=`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+              const color = stateToColor(getDayState(p.key,ds));
+              const td = makeStatusCell(color);
+              tr.appendChild(td);
+            });
+
+            // Weeks (tooltip in days)
+            lastNWeeksDesc(PAST_WEEKS).forEach(w=>{
+              const st = windowStatsDays(p.key, w.start, w.end);
+              const pct = st.totalDays ? Math.round(100*st.farmedDays/st.totalDays) : 0;
+              const tip = `${st.farmedDays}/${st.totalDays} days farmed (${pct}%)`;
+              const td = makeStatusCell(st.color, tip);
+              tr.appendChild(td);
+            });
+
+            // Months (tooltip in days)
+            lastNMonthsDesc(PAST_MONTHS).forEach(m=>{
+              const st = windowStatsDays(p.key, m.start, m.end);
+              const pct = st.totalDays ? Math.round(100*st.farmedDays/st.totalDays) : 0;
+              const tip = `${st.farmedDays}/${st.totalDays} days farmed (${pct}%)`;
+              const td = makeStatusCell(st.color, tip);
+              tr.appendChild(td);
+            });
+
+            // Quarters (tooltip in months)
+            lastNQuartersDesc(PAST_QUARTERS).forEach(q=>{
+              const st = windowStatsQuarterMonths(p.key, q.start, q.end);
+              const pct = st.totalMonths ? Math.round(100*st.greenMonths/st.totalMonths) : 0;
+              const tip = `${st.greenMonths}/${st.totalMonths} months fully farmed (${pct}%)`;
+              const td = makeStatusCell(st.color, tip);
+              tr.appendChild(td);
+            });
+
+            bodyEl.appendChild(tr);
+            repaintInactiveHistory(p.key, tr);
           });
-
-          // Weeks (tooltip in days)
-          lastNWeeksDesc(PAST_WEEKS).forEach(w=>{
-            const st = windowStatsDays(p.key, w.start, w.end);
-            const pct = st.totalDays ? Math.round(100*st.farmedDays/st.totalDays) : 0;
-            const tip = `${st.farmedDays}/${st.totalDays} days farmed (${pct}%)`;
-            const td = makeStatusCell(st.color, tip);
-            tr.appendChild(td);
-          });
-
-          // Months (tooltip in days)
-          lastNMonthsDesc(PAST_MONTHS).forEach(m=>{
-            const st = windowStatsDays(p.key, m.start, m.end);
-            const pct = st.totalDays ? Math.round(100*st.farmedDays/st.totalDays) : 0;
-            const tip = `${st.farmedDays}/${st.totalDays} days farmed (${pct}%)`;
-            const td = makeStatusCell(st.color, tip);
-            tr.appendChild(td);
-          });
-
-          // Quarters (tooltip in months)
-          lastNQuartersDesc(PAST_QUARTERS).forEach(q=>{
-            const st = windowStatsQuarterMonths(p.key, q.start, q.end);
-            const pct = st.totalMonths ? Math.round(100*st.greenMonths/st.totalMonths) : 0;
-            const tip = `${st.greenMonths}/${st.totalMonths} months fully farmed (${pct}%)`;
-            const td = makeStatusCell(st.color, tip);
-            tr.appendChild(td);
-          });
-
-          bodyEl.appendChild(tr);
-          repaintInactiveHistory(p.key, tr);
         });
 
         // toggle behaviour + persistence
@@ -790,7 +773,8 @@
 
     function repaintInactiveHistory(key, tr){
       const active = getActive(key);
-      for (let i=PRE_HISTORY_COLS; i<tr.cells.length; i++){
+      const startIdx = parseInt(tr.dataset.precols || "${PRE_HISTORY_COLS}");
+      for (let i=startIdx; i<tr.cells.length; i++){
         const td = tr.cells[i];
         if (!active){
           td.classList.add('inactive-cell');
