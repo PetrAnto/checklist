@@ -75,6 +75,12 @@
     .cat-score{margin-left:auto;display:flex;align-items:center;gap:.5rem}
     .cat-score .progress{width:140px;height:8px}
 
+    /* Category legend placed inside header cell */
+    .cat-legend{display:grid;grid-template-columns:repeat(5, minmax(140px, 1fr));gap:.4rem;margin-top:.3rem}
+    .cat-legend .entry{display:flex;align-items:center;gap:.35rem;font-size:.82rem;color:var(--muted)}
+    .cat-legend .sw{width:12px;height:12px;border-radius:3px;display:inline-block}
+    .sw-s{background:var(--tierS)} .sw-a{background:var(--tierA)} .sw-b{background:var(--tierB)} .sw-c{background:var(--tierC)} .sw-d{background:var(--tierD)}
+
     /* Rows visibility */
     tr[data-cat]{display:table-row;}
     tr[data-hidden="1"]{display:none;}
@@ -91,16 +97,12 @@
     .chip a{color:#e5e7eb;text-decoration:none}
     .chip a:hover{text-decoration:underline}
 
-    /* Tier legend bar (English) */
-    .tier-legend .legend-pill{display:inline-flex;align-items:center;gap:.35rem;margin-right:.6rem}
-    .legend-swatch{width:12px;height:12px;border-radius:3px;display:inline-block}
-
-    /* First column merged tier cell */
-    .tier-merge{color:#111;border-right:1px solid var(--border);overflow:hidden;
-      border-top-left-radius:10px;border-bottom-left-radius:10px;}
-    .tierbg-S{background:var(--tierS)} .tierbg-A{background:var(--tierA)}
-    .tierbg-B{background:var(--tierB)} .tierbg-C{background:var(--tierC)} .tierbg-D{background:var(--tierD)}
-    .tier-merge .inner{min-height:100%;display:flex;align-items:center;justify-content:center;font-weight:800}
+    /* First column merged tier cell (colored + rounded left) */
+    .tier-merge{padding:0;border-right:1px solid var(--border);overflow:hidden}
+    .tier-pill{height:100%;width:100%;display:flex;align-items:center;justify-content:center;font-weight:800;color:#111;
+               border-top-left-radius:12px;border-bottom-left-radius:12px;}
+    .tierpill-S{background:var(--tierS)} .tierpill-A{background:var(--tierA)}
+    .tierpill-B{background:var(--tierB)} .tierpill-C{background:var(--tierC)} .tierpill-D{background:var(--tierD)}
   </style>
 </head>
 <body>
@@ -133,22 +135,13 @@
       </div>
     </div>
 
-    <!-- Legend + Notes + Tier legend (EN) -->
+    <!-- Click/Farm Legend + Notes (tier legend removed per request) -->
     <div class="legend alert alert-dark border-secondary py-2 mb-2">
-      <div class="mb-1">
-        <span class="me-3"><span class="status-box status-red me-1"></span> No click and no farm</span>
-        <span class="me-3"><span class="status-box status-yellow me-1"></span> Click but no farm confirmed</span>
-        <span class="me-3"><span class="status-box status-green me-1"></span> Click and farm OK</span>
-      </div>
-      <div class="small text-secondary mb-1">
+      <span class="me-3"><span class="status-box status-red me-1"></span> No click and no farm</span>
+      <span class="me-3"><span class="status-box status-yellow me-1"></span> Click but no farm confirmed</span>
+      <span class="me-3"><span class="status-box status-green me-1"></span> Click and farm OK</span>
+      <div class="small text-secondary mt-1">
         100% rule: green = fully farmed in the window, yellow = partial, red = 0%. Cloud sync via Supabase (magic link).
-      </div>
-      <div class="tier-legend small">
-        <span class="legend-pill"><span class="legend-swatch" style="background:var(--tierS)"></span><strong>S</strong> Must-farm / top quality</span>
-        <span class="legend-pill"><span class="legend-swatch" style="background:var(--tierA)"></span><strong>A</strong> High priority</span>
-        <span class="legend-pill"><span class="legend-swatch" style="background:var(--tierB)"></span><strong>B</strong> Optional / watchlist</span>
-        <span class="legend-pill"><span class="legend-swatch" style="background:var(--tierC)"></span><strong>C</strong> Experimental / WL</span>
-        <span class="legend-pill"><span class="legend-swatch" style="background:var(--tierD)"></span><strong>D</strong> Long shots</span>
       </div>
     </div>
 
@@ -503,7 +496,7 @@
 
     function updateHistoryCellsForRow(key,tr, cat){
       const days=lastNDaysDesc(PAST_DAYS), weeks=lastNWeeksDesc(PAST_WEEKS), months=lastNMonthsDesc(PAST_MONTHS), quarters=lastNQuartersDesc(PAST_QUARTERS);
-      let colIndex = parseInt(tr.dataset.precols || "${PRE_HISTORY_COLS}");
+      let colIndex = tr.dataset.precols ? parseInt(tr.dataset.precols,10) : PRE_HISTORY_COLS;
 
       // days
       days.forEach(d=>{
@@ -586,6 +579,19 @@
       return wrap;
     }
 
+    function renderCategoryLegend(container){
+      const div = document.createElement('div');
+      div.className = 'cat-legend';
+      div.innerHTML = `
+        <div class="entry"><span class="sw sw-s"></span><strong>S</strong>&nbsp;Must-farm / top quality</div>
+        <div class="entry"><span class="sw sw-a"></span><strong>A</strong>&nbsp;High priority</div>
+        <div class="entry"><span class="sw sw-b"></span><strong>B</strong>&nbsp;Optional / watchlist</div>
+        <div class="entry"><span class="sw sw-c"></span><strong>C</strong>&nbsp;Experimental / WL</div>
+        <div class="entry"><span class="sw sw-d"></span><strong>D</strong>&nbsp;Long shots</div>
+      `;
+      container.appendChild(div);
+    }
+
     function renderBody(){
       bodyEl.innerHTML='';
       const days=lastNDaysDesc(PAST_DAYS), weeks=lastNWeeksDesc(PAST_WEEKS), months=lastNMonthsDesc(PAST_MONTHS), quarters=lastNQuartersDesc(PAST_QUARTERS);
@@ -618,6 +624,8 @@
             </div>
           </td>`;
         bodyEl.appendChild(header);
+        // add the per-category tier legend inside the header cell
+        renderCategoryLegend(header.children[0].children[0]);
         renderCategoryScore(cat);
 
         /* Embedded Tier List row */
@@ -646,15 +654,15 @@
             const hasTierCell = (idx===0);
             tr.dataset.precols = hasTierCell ? PRE_HISTORY_COLS : (PRE_HISTORY_COLS - 1);
 
-            // Tier merged cell once per group
+            // Tier merged cell once per group (colored + rounded)
             if (hasTierCell){
               const tdMerged = document.createElement('td');
-              tdMerged.className = `tier-col tier-merge tierbg-${g.t}`;
+              tdMerged.className = `tier-col tier-merge`;
               tdMerged.rowSpan = g.list.length;
-              const inner = document.createElement('div');
-              inner.className = 'inner';
-              inner.textContent = g.t;
-              tdMerged.appendChild(inner);
+              const pill = document.createElement('div');
+              pill.className = `tier-pill tierpill-${g.t}`;
+              pill.textContent = g.t;
+              tdMerged.appendChild(pill);
               tr.appendChild(tdMerged);
             }
 
@@ -773,7 +781,7 @@
 
     function repaintInactiveHistory(key, tr){
       const active = getActive(key);
-      const startIdx = parseInt(tr.dataset.precols || "${PRE_HISTORY_COLS}");
+      const startIdx = tr.dataset.precols ? parseInt(tr.dataset.precols,10) : PRE_HISTORY_COLS;
       for (let i=startIdx; i<tr.cells.length; i++){
         const td = tr.cells[i];
         if (!active){
