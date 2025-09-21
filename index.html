@@ -90,12 +90,19 @@
     .chip a{color:#e5e7eb;text-decoration:none}
     .chip a:hover{text-decoration:underline}
 
-    /* First column merged tier cell (colored + rounded left) */
-    .tier-merge{padding:0;border-right:1px solid var(--border);overflow:hidden}
-    .tier-pill{height:100%;width:100%;display:flex;align-items:center;justify-content:center;font-weight:800;color:#111;
-               border-top-left-radius:12px;border-bottom-left-radius:12px;}
-    .tierpill-S{background:var(--tierS)} .tierpill-A{background:var(--tierA)}
-    .tierpill-B{background:var(--tierB)} .tierpill-C{background:var(--tierC)} .tierpill-D{background:var(--tierD)}
+    /* Tier first column: make the WHOLE merged cell colored */
+    .tier-merge{
+      text-align:center;
+      vertical-align:middle;
+      font-weight:800;
+      color:#111;
+      border-right:1px solid var(--border);
+    }
+    .tierbg-S{background:var(--tierS)!important;}
+    .tierbg-A{background:var(--tierA)!important;}
+    .tierbg-B{background:var(--tierB)!important;}
+    .tierbg-C{background:var(--tierC)!important;}
+    .tierbg-D{background:var(--tierD)!important;}
   </style>
 </head>
 <body>
@@ -573,9 +580,11 @@
             tr.dataset.precols = hasTierCell ? PRE_HISTORY_COLS : (PRE_HISTORY_COLS - 1);
 
             if(hasTierCell){
-              const tdMerged=document.createElement('td'); tdMerged.className='tier-col tier-merge'; tdMerged.rowSpan=g.list.length;
-              const pill=document.createElement('div'); pill.className=`tier-pill tierpill-${g.t}`; pill.textContent=g.t;
-              tdMerged.appendChild(pill); tr.appendChild(tdMerged);
+              const tdMerged=document.createElement('td');
+              tdMerged.className=`tier-col tier-merge tierbg-${g.t}`;
+              tdMerged.rowSpan=g.list.length;
+              tdMerged.textContent=g.t;  // the letter, centered & vertically middle
+              tr.appendChild(tdMerged);
             }
 
             // Project cell + track
