@@ -10,8 +10,15 @@
     :root{
       --bg:#0b0d10; --panel:#0f1115; --panel-2:#111827; --text:#e5e7eb;
       --muted:#9ca3af; --border:#1f2937; --link:#93c5fd; --link-hover:#bfdbfe;
-      /* Tier palette */
-      --tierS:#ff7a7a; --tierA:#ffb77a; --tierB:#ffd66b; --tierC:#fff78a; --tierD:#b7f397;
+
+      /* Tier palette — tweak here to exact hexes if you prefer */
+      --tier-S:#ff6b6b;   /* red */
+      --tier-A:#ffb366;   /* orange */
+      --tier-B:#ffe66d;   /* yellow */
+      --tier-C:#7cff7a;   /* green */
+      --tier-D:#6bb7ff;   /* blue */
+      --tier-E:#a78bfa;   /* purple (unused for now) */
+      --tier-F:#ff7de3;   /* pink   (unused for now) */
     }
     html,body{height:100%} body{background:var(--bg);color:var(--text)}
     a{color:var(--link)} a:hover{color:var(--link-hover)}
@@ -23,11 +30,14 @@
       --bs-table-bg:var(--panel);--bs-table-color:var(--text);
       --bs-table-striped-bg:var(--panel-2);--bs-table-striped-color:var(--text);
       --bs-table-border-color:var(--border);
+      border-collapse:separate; /* keep borders sharp between colored tier cells and rows */
+      border-spacing:0;
     }
     .table td,.table th{padding:.35rem .4rem}
-    .section-head th{background:var(--panel-2);border-color:var(--border);text-align:center;vertical-align:middle}
-    .tier-col{width:46px;text-align:center;vertical-align:middle}
+    .table thead{display:none;} /* we render per-category subheads */
+
     .project-cell a{text-decoration:underline}
+    .tier-col{width:76px; padding:0!important; border-right:2px solid #121212;} /* thicker separator like screenshot */
     .project-col{min-width:220px}
     .desc-col{color:var(--muted);font-size:.9rem;white-space:normal;vertical-align:middle!important}
     .routine-col{font-size:.9rem;vertical-align:middle!important}
@@ -48,61 +58,51 @@
     .code-badge{cursor:pointer}
     .controls .btn{margin-right:.5rem}
 
-    /* Inactive rows */
+    /* Inactive (not tracked) rows */
     tr.inactive{opacity:.5; filter:grayscale(.8)}
     td.inactive-cell .status-box{background:#6b7280!important}
 
     /* Banner */
-    .banner-wrap{ margin:12px auto 6px;border-radius:12px;overflow:hidden;border:1px solid var(--border);background:#000; width:44vw;max-width:940px; }
+    .banner-wrap{ margin:12px auto 6px;border-radius:12px;overflow:hidden;border:1px solid var(--border);background:#000;
+      width:44vw;max-width:940px; }
     .banner-wrap img{width:100%;height:auto;display:block}
     .banner-meta{width:44vw;max-width:940px;margin:6px auto 12px;text-align:center;color:var(--muted);font-size:.95rem}
     @media (max-width:991.98px){.banner-wrap{width:100%}.banner-meta{width:100%}}
 
     /* Category header row (collapsible) */
     .cat-row{background:var(--panel-2)!important;user-select:none}
-    .cat-row td{padding:.45rem .6rem}
-    .cat-title{display:flex;align-items:center;gap:.6rem;flex-wrap:wrap}
+    .cat-row td{padding:.55rem .6rem}
+    .cat-title{display:flex;align-items:flex-start;gap:.6rem;flex-wrap:wrap}
     .cat-toggle{cursor:pointer;display:inline-block;width:1rem;text-align:center}
     .cat-badge{font-size:.75rem}
     .cat-desc{color:var(--muted);font-weight:400;font-size:.9rem}
     .cat-score{margin-left:auto;display:flex;align-items:center;gap:.5rem}
     .cat-score .progress{width:140px;height:8px}
 
-    /* Category legend inside header */
-    .cat-legend{display:grid;grid-template-columns:repeat(5, minmax(140px, 1fr));gap:.4rem;margin-top:.3rem}
-    .cat-legend .entry{display:flex;align-items:center;gap:.35rem;font-size:.82rem;color:var(--muted)}
-    .cat-legend .sw{width:12px;height:12px;border-radius:3px;display:inline-block}
-    .sw-s{background:var(--tierS)} .sw-a{background:var(--tierA)} .sw-b{background:var(--tierB)} .sw-c{background:var(--tierC)} .sw-d{background:var(--tierD)}
+    /* Per-category horizontal tier row */
+    .tierbar{display:flex;gap:.35rem;flex-wrap:wrap}
+    .tier-pill{padding:.15rem .4rem;border-radius:.35rem;font-weight:700;font-size:.85rem;color:#0b0d10}
+    .tier-pill.S{background:var(--tier-S);color:#000}
+    .tier-pill.A{background:var(--tier-A);color:#000}
+    .tier-pill.B{background:var(--tier-B);color:#000}
+    .tier-pill.C{background:var(--tier-C);color:#000}
+    .tier-pill.D{background:var(--tier-D);color:#000}
 
-    /* Rows visibility */
-    tr[data-cat]{display:table-row;}
-    tr[data-hidden="1"]{display:none;}
+    /* Vertical tier merged cell (first column) */
+    .tier-cell{font-weight:800;text-align:center;line-height:1}
+    .tier-cell .tier-label{font-size:1.05rem;letter-spacing:.6px;display:block;padding:.45rem 0}
+    .tier-S{background:var(--tier-S)}
+    .tier-A{background:var(--tier-A)}
+    .tier-B{background:var(--tier-B)}
+    .tier-C{background:var(--tier-C)}
+    .tier-D{background:var(--tier-D)}
+    /* square-like left block look: add a darker outer border to mimic the template */
+    .tier-col{border-left:8px solid #0b0d10} /* thick left border like frame */
+    tr + tr .tier-col{border-top:2px solid #0b0d10} /* horizontal separators */
+    .table > :not(caption) > * > .tier-col{border-color:#0b0d10}
 
-    /* Embedded Tier list row */
-    .tier-row td{background:#0e1420;border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
-    .tier-wrap{display:grid;grid-template-columns:repeat(5,1fr);gap:.5rem}
-    .tier-colbox{padding:.45rem;border:1px dashed rgba(255,255,255,.1);border-radius:.5rem;min-height:48px}
-    .tier-head{font-weight:700;margin-bottom:.35rem;font-size:.9rem;display:flex;align-items:center;gap:.35rem}
-    .tier-badge{display:inline-block;min-width:24px;text-align:center;border-radius:.35rem;padding:.05rem .35rem;color:#000;font-weight:700}
-    .tier-badge.s{background:var(--tierS)} .tier-badge.a{background:var(--tierA)}
-    .tier-badge.b{background:var(--tierB)} .tier-badge.c{background:var(--tierC)} .tier-badge.d{background:var(--tierD)}
-    .chip{display:inline-block;margin:.2rem .25rem 0 0;padding:.15rem .45rem;border-radius:999px;background:#111827;border:1px solid #1f2937;font-size:.85rem;white-space:nowrap}
-    .chip a{color:#e5e7eb;text-decoration:none}
-    .chip a:hover{text-decoration:underline}
-
-    /* Tier first column: make the WHOLE merged cell colored */
-    .tier-merge{
-      text-align:center;
-      vertical-align:middle;
-      font-weight:800;
-      color:#111;
-      border-right:1px solid var(--border);
-    }
-    .tierbg-S{background:var(--tierS)!important;}
-    .tierbg-A{background:var(--tierA)!important;}
-    .tierbg-B{background:var(--tierB)!important;}
-    .tierbg-C{background:var(--tierC)!important;}
-    .tierbg-D{background:var(--tierD)!important;}
+    /* Mini column head inside each category */
+    .minihead th{background:transparent;border-top:0;border-bottom:1px solid var(--border);font-weight:600;color:#cbd5e1}
   </style>
 </head>
 <body>
@@ -120,7 +120,7 @@
     <div class="d-flex align-items-center justify-content-between mb-2 sticky-top sticky-top-bg px-2 py-2 rounded-3">
       <div>
         <h1 class="h4 mb-0">Airdrop Farming Tracker</h1>
-        <div class="subhead">Dark mode • Auto-tick on link click • Manual “Farm” • Local + Supabase sync • Routine Score</div>
+        <div class="subhead">Dark mode • Auto-tick on link click • Manual “Farm” • Local + Supabase sync • Routine Score • Tier Lists</div>
       </div>
       <div class="controls">
         <button id="toggleAllBtn" class="btn btn-outline-light btn-sm">Expand all</button>
@@ -135,13 +135,13 @@
       </div>
     </div>
 
-    <!-- Click/Farm legend -->
+    <!-- Legend + Notes -->
     <div class="legend alert alert-dark border-secondary py-2 mb-2">
       <span class="me-3"><span class="status-box status-red me-1"></span> No click and no farm</span>
       <span class="me-3"><span class="status-box status-yellow me-1"></span> Click but no farm confirmed</span>
       <span class="me-3"><span class="status-box status-green me-1"></span> Click and farm OK</span>
-      <div class="small text-secondary mt-1">
-        100% rule: green = fully farmed in the window, yellow = partial, red = 0%. Cloud sync via Supabase (magic link).
+      <div class="small mt-1 text-secondary">
+        100% rule for windows: green only if the entire period is farmed; yellow if partial; red if none. Hover to see exact % (days / months).
       </div>
     </div>
 
@@ -237,470 +237,603 @@
 
   <!-- App -->
   <script>
+    /* ===== Donation addresses — replace with your real wallets ===== */
     const DONATE_ETH_ADDRESS = '0x8ed6b33043470497b6803eF126234Ebb0d764E44';
     const DONATE_SOL_ADDRESS = '9rcGbiGFab8enU7ixKh6ai1iPbEu6zVb4hvnVpdN8gDA';
 
-    // ===== SUPABASE =====
+    // ====== SUPABASE CONFIG ======
     const SUPABASE_URL = 'https://naksqjsuivlalltonldj.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5ha3NxanN1aXZsYWxsdG9ubGRqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY4MjgxNzYsImV4cCI6MjA3MjQwNDE3Nn0.8LttdRBSqP-zYPeUJpMGNIVly7h5mJ6MoZfP3i1-EOs';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5ha3NxanN1aXZzYWxsdG9ubGRqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY4MjgxNzYsImV4cCI6MjA3MjQwNDE3Nn0.8LttdRBSqP-zYPeUJpMGNIVly7h5mJ6MoZfP3i1-EOs';
     const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    let IS_AUTH=false, REGISTERED_AT=null;
 
-    // ===== DATA =====
+    // ====== FLAGS AUTH ======
+    let IS_AUTH = false;
+    let REGISTERED_AT = null;
+
+    // ====== DATA (with Tier) ======
     const PROJECTS = [
-      /* SocialFi / InfoFi */
-      { cat:'SocialFi/InfoFi', key:'kaito', name:'Kaito (Yaps)', url:'https://yaps.kaito.ai/referral/1382662710396080133',
-        desc:'SocialFi leader. Mindshare & data market + launchpad.',
-        routine:['Check Top/Emerging Yapper feed & engage','Join Airdrop/Earn Campaign','Stake $KAITO','Post quality content (>1/day)']},
-      { cat:'SocialFi/InfoFi', key:'xeet', name:'Xeet', url:'https://www.xeet.ai/refer/PetrAnto12',
-        desc:'Quality content tournaments (Signal > Noise).',
-        routine:['Create 1 high-signal post','Refer quality users','Check profile & tournaments','Claim rewards']},
-      { cat:'SocialFi/InfoFi', key:'fundamental', name:'Fundamental.lol', url:'https://fundamental.lol/r/?node=PetrAnto12-5mu',
-        desc:'Onchain social hub.',
-        routine:['Daily visit & check-in','Mint passport','Invite quality people to your branch','Give & get Kudos']},
-      { cat:'SocialFi/InfoFi', key:'cookieFun', name:'Cookie.fun', url:'https://www.cookie.fun/profile',
-        desc:'Capital–mindshare connections.',
-        routine:['Post about campaign projects','Refer users','Use/Trade AI agents','Stake/Lock $COOKIE','Complete daily tasks']},
-      { cat:'SocialFi/InfoFi', key:'ethos', name:'Ethos', url:'https://app.ethos.network/',
-        desc:'Web3 reputation.',
-        routine:['Write 1 review','Buy/Sell votes','Invite','Link wallets & socials']},
-      { cat:'SocialFi/InfoFi', key:'klout', name:'Klout.gg', url:'https://klout.gg/', desc:'Attention markets.',
+      /* ========== DeFi ========== */
+      { cat:'DeFi', tier:'S', key:'axiom', name:'Axiom', url:'https://axiom.trade/@petranto',
+        desc:'Perps & trading hub (quality S-tier)',
+        routine:['Open 1 trade / close PnL','Try LP or vault (if live)','Complete quests / tasks','Claim points / check leaderboard','Refer a user']},
+      { cat:'DeFi', tier:'S', key:'prjx', name:'PRJX', url:'https://www.prjx.com/@petranto',
+        desc:'DEX & aggregator on Hyperliquid',
+        routine:['Do 1 swap via PRJX','Provide LP in a HYPE/stable pool','Bridge via PRJX router','Claim/track points','Refer a user (bonus)']},
+      { cat:'DeFi', tier:'A', key:'hyperlend', name:'HyperLend', url:'https://app.hyperlend.finance/?ref=PETRANTO',
+        desc:'Lending on Hyperliquid',
+        routine:['Supply feUSD / stHYPE','Borrow against collateral','Optional: 1 loop','Claim points','Rebalance/repay if needed']},
+      { cat:'DeFi', tier:'A', key:'felix', name:'Felix Protocol', url:'https://www.usefelix.xyz?ref=8956BB26',
+        desc:'Lending & Frontier Vaults',
+        routine:['Supply USDe/feUSD','Enter a Frontier Vault','Check borrow rates','Claim points','Invite a user']},
+      { cat:'DeFi', tier:'A', key:'kinetiq', name:'Kinetiq', url:'https://kinetiq.xyz/',
+        desc:'Liquid staking for HYPE',
+        routine:['Stake HYPE → mint kHYPE','Restake/supply kHYPE','Track multipliers','Claim staking rewards']},
+      { cat:'DeFi', tier:'B', key:'hyperbeat', name:'HyperBeat', url:'https://app.hyperbeat.org/earn',
+        desc:'Yield aggregator (hbAssets)',
+        routine:['Deposit in 1 vault','Harvest “hearts” points','Compound or rotate']},
+      { cat:'DeFi', tier:'B', key:'hypurr', name:'HypurrFi', url:'https://app.hypurr.fi/',
+        desc:'Leveraged debt loops',
+        routine:['Open 1 leveraged loop','Watch health factor','Claim Hypurr points','Unwind/rebalance if needed']},
+      { cat:'DeFi', tier:'C', key:'paradex', name:'Paradex (WL)', url:'https://app.paradex.trade/wl/astutemakerz',
+        desc:'Perps on Starknet (waitlist)',
+        routine:['Join WL / complete tasks','Check for trading access','Do 1 trade once live']},
+
+      /* ========== SocialFi / InfoFi ========== */
+      { cat:'SocialFi/InfoFi', tier:'S', key:'kaito', name:'Kaito (Yaps)', url:'https://yaps.kaito.ai/referral/1382662710396080133',
+        desc:'SocialFi leader. Mindshare, data & launchpad.',
+        routine:['Engage “Top & Emerging Yapper” posts','Check Airdrop / Earn campaigns','Stake $KAITO','Post quality content >1/day']},
+      { cat:'SocialFi/InfoFi', tier:'A', key:'xeet', name:'Xeet', url:'https://www.xeet.ai/refer/PetrAnto12',
+        desc:'Quality content SocialFi (Signal > Noise)',
+        routine:['Create 1 quality post','Refer 1 quality user','Check profile/tournaments','Track credits/streak']},
+      { cat:'SocialFi/InfoFi', tier:'A', key:'ethos', name:'Ethos', url:'https://app.ethos.network/',
+        desc:'Web3 reputation',
+        routine:['Write 1 review/day','Buy/Sell votes','Invite users','Link wallets & socials']},
+      { cat:'SocialFi/InfoFi', tier:'B', key:'klout', name:'Klout.gg', url:'https://klout.gg/',
         referralNote:'Referral: “petranto 🧬”', copyText:'petranto 🧬',
-        routine:['Open/close 1 position','Post quality content','Share referral once','Play Chaser & win']},
-      { cat:'SocialFi/InfoFi', key:'wallchain', name:'Wallchain (Quacks)', url:'https://quacks.app/?ref=PetrAnto12',
-        desc:'Social points & referrals.',
-        routine:['Post on selected projects','Link reward wallets','Refer users','Claim Quacks']},
-      { cat:'SocialFi/InfoFi', key:'mindoshare', name:'Mindoshare.ai', url:'https://mindoshare.ai/kol?ref=cmev63nqn01mllr3wtpn2whcm',
-        desc:'KOL tasks.',
-        routine:['Create content to complete tasks','Refer users','Complete tasks on X']},
-      { cat:'SocialFi/InfoFi', key:'bantr', name:'Bantr', url:'https://beta.bantr.fun?ic=1UB6N36',
-        desc:'SocialFi & product usage.',
+        desc:'Attention market',
+        routine:['Open/close 1 position','Post quality content','Share referral once','Play Chaser and win']},
+      { cat:'SocialFi/InfoFi', tier:'B', key:'cookieFun', name:'Cookie.fun', url:'https://www.cookie.fun/profile',
+        desc:'Capital–mindshare connections',
+        routine:['Post about campaign projects','Refer users','Use/Trade AI agents','Stake/Lock $COOKIE','Complete daily tasks']},
+      { cat:'SocialFi/InfoFi', tier:'B', key:'wallchain', name:'Wallchain (Quacks)', url:'https://quacks.app/?ref=PetrAnto12',
+        desc:'Engagement & rewards',
+        routine:['Post about selected projects','Link reward wallets','Refer users','Claim Quacks']},
+      { cat:'SocialFi/InfoFi', tier:'B', key:'fundamental', name:'Fundamental.lol', url:'https://fundamental.lol/r/?node=PetrAnto12-5mu',
+        desc:'Onchain social hub',
+        routine:['Daily visit & check-in','Mint passport','Invite quality people','Add HL-active wallets','Give/Receive Kudos','Find community code']},
+      { cat:'SocialFi/InfoFi', tier:'C', key:'bantr', name:'Bantr', url:'https://beta.bantr.fun?ic=1UB6N36',
+        desc:'SocialFi + product usage',
         routine:['Refer users','Post about leaderboard projects','Engage with trending items']},
-      { cat:'SocialFi/InfoFi', key:'kudoswap', name:'KudoSwap', url:'https://kudoswap.com/PetrAnto12',
-        desc:'Kudos + tokens.',
+      { cat:'SocialFi/InfoFi', tier:'C', key:'mindoshare', name:'Mindoshare.ai', url:'https://mindoshare.ai/kol?ref=cmev63nqn01mllr3wtpn2whcm',
+        desc:'KOL tasks',
+        routine:['Create content for tasks','Refer users','Complete X tasks']},
+      { cat:'SocialFi/InfoFi', tier:'C', key:'kudoswap', name:'KudoSwap', url:'https://kudoswap.com/PetrAnto12',
+        desc:'Kudos & tokens',
         routine:['Give Kudos','Get Kudos','Find community code']},
 
-      /* Web3 Quests */
-      { cat:'Web3 Quests', key:'galxe', name:'Galxe', url:'https://app.galxe.com/hub/invite?code=GICyJr43Nj1NJrZqi4fhOdcjt4V_avTgEEJxuu-AC0=',
-        desc:'Quest & airdrop hub.',
-        routine:['Pick 1–2 quick quests','Complete steps & verify','Claim OAT/points','Scan new campaigns']},
-      { cat:'Web3 Quests', key:'astranovaBP', name:'Astranova BlackPass', url:'https://blackpass.astranova.world?referral_code=6ed940ede64b',
-        desc:'SocialFi quests.',
-        routine:['Daily Spin','Refer users','Complete tasks','Update BlackPass NFT']},
-      { cat:'Web3 Quests', key:'edgenAura', name:'Edgen Aura', url:'https://www.edgen.tech/aura/PetrAnto12',
-        desc:'AI tools for monitoring & trading.',
-        routine:['Do quest tasks & claim','Refer users','Use tools','Post & mention Edgen','Register']},
-      { cat:'Web3 Quests', key:'consumerfi', name:'ConsumerFi', url:'https://www.consumerfi.ai/app?referral_code=PVZcXvqV',
-        desc:'ConsumerFi quests.',
+      /* ========== Web3 Quests ========== */
+      { cat:'Web3 Quests', tier:'S', key:'galxe', name:'Galxe', url:'https://app.galxe.com/hub/invite?code=GICyJr43Nj1NJrZqi4fhOdcjt4V_avTgEEJxuu-AC0=',
+        desc:'Quest & airdrop hub',
+        routine:['Pick 1–2 quick quests','Complete & verify','Claim OAT/points','Scan new campaigns']},
+      { cat:'Web3 Quests', tier:'A', key:'edgenAura', name:'Edgen Aura', url:'https://www.edgen.tech/aura/PetrAnto12',
+        desc:'AI tools for markets',
+        routine:['Perform quest tasks & claim','Refer users','Use tools','Post about tokens/stocks with Edgen','Register / keep streak']},
+      { cat:'Web3 Quests', tier:'B', key:'consumerfi', name:'ConsumerFi', url:'https://www.consumerfi.ai/app?referral_code=PVZcXvqV',
+        desc:'Consumer quest hub',
         routine:['Daily check-in & tasks','Refer users','Complete training tasks','Claim credits']},
-      { cat:'Web3 Quests', key:'rallyWait', name:'Rally.fun Waitlist', url:'https://waitlist.rally.fun/joinme/PetrAnto12',
-        desc:'SocialFi marketing tool.',
-        routine:['Confirm email & profile','Refer users','Check for new activities']},
-      { cat:'Web3 Quests', key:'addicted', name:'Addicted.fun Invite code', url:'https://addicted.fun',
-        desc:'On-chain Play-to-Earn (early).',
-        routine:['Invite users','Monitor for go-live tasks']},
+      { cat:'Web3 Quests', tier:'B', key:'astranovaBP', name:'Astranova BlackPass', url:'https://blackpass.astranova.world?referral_code=6ed940ede64b',
+        desc:'SocialFi quests',
+        routine:['Daily spin','Refer users','Complete tasks','Update BlackPass NFT']},
+      { cat:'Web3 Quests', tier:'C', key:'rallyWait', name:'Rally.fun (Waitlist)', url:'https://waitlist.rally.fun/joinme/PetrAnto12',
+        desc:'SocialFi marketing tool (WL)',
+        routine:['Confirm email/profile','Refer users','Check for activities']},
+      { cat:'Web3 Quests', tier:'C', key:'addicted', name:'Addicted.fun (Invite)', url:'https://addicted.fun',
+        desc:'On-chain P2E (early)',
+        routine:['Invite users','Monitor for new tasks']},
 
-      /* DeFi */
-      { cat:'DeFi', key:'axiom', name:'Axiom', url:'https://axiom.trade/@petranto',
-        desc:'Perps/Spot trading & points.',
-        routine:['Create account via link','Deposit small amount','Do 5k–50k volume in swaps/perps','Explore LP/vaults if live','Claim/track points']},
-      { cat:'DeFi', key:'prjx', name:'PRJX', url:'https://www.prjx.com/@petranto',
-        desc:'Hyperliquid DEX & aggregator.',
-        routine:['Bridge or swap via PRJX','Provide LP in HYPE/stable pools','Harvest fees & points','Use cross-chain routing']},
-      { cat:'DeFi', key:'hyperlend', name:'HyperLend', url:'https://app.hyperlend.finance/?ref=PETRANTO',
-        desc:'Lending on Hyperliquid.',
-        routine:['Supply feUSD/stHYPE','Borrow against collateral','Loop for 2–3x exposure','Claim points']},
-      { cat:'DeFi', key:'felix', name:'Felix Protocol', url:'https://www.usefelix.xyz?ref=8956BB26',
-        desc:'Lending/Borrowing vaults.',
-        routine:['Deposit USDe/feUSD','Enter Frontier Vault','Rebalance loop if needed','Claim points']},
-      { cat:'DeFi', key:'hypurr', name:'HypurrFi', url:'https://app.hypurr.fi/',
-        desc:'Debt farming/leveraged loops.',
-        routine:['Choose loop strategy','Supply stable or stHYPE','Leverage to target APY','Claim Hypurr points']},
-      { cat:'DeFi', key:'kinetiq', name:'Kinetiq (kHYPE)', url:'https://kinetiq.xyz/',
-        desc:'Liquid staking for HYPE.',
-        routine:['Stake HYPE → kHYPE','Restake into lenders','Compound rewards','Track multipliers']},
-      { cat:'DeFi', key:'hyperbeat', name:'HyperBeat', url:'https://app.hyperbeat.org/earn',
-        desc:'Yield aggregator on Hyperliquid.',
-        routine:['Pick hbVault','Deposit assets','Auto-compound','Collect hearts points']},
-      { cat:'DeFi', key:'paradex', name:'Paradex WL', url:'https://app.paradex.trade/wl/astutemakerz',
-        desc:'Perps WL (StarkEx).',
-        routine:['Join waitlist','Complete WL actions','Track for future quests','Invite users']},
-
-      /* Fantasy */
-      { cat:'Fantasy', key:'fantasyTop', name:'FantasyTop', url:'https://fantasy.top?ref=petranto12',
-        desc:'Fantasy trading of creators.',
-        routine:['Claim/check-in','Trade cards / register decks','Engage 3 creator profiles','Claim rewards / keep streak']},
-      { cat:'Fantasy', key:'footballFun', name:'Football.fun', url:'https://pro.football.fun/login/?referral_code=UWM2GXU9V8O',
-        desc:'Fantasy football.',
-        routine:['Complete tasks','Trade players','Join team','Invite users']}
+      /* ========== Fantasy ========== */
+      { cat:'Fantasy', tier:'S', key:'fantasyTop', name:'FantasyTop', url:'https://fantasy.top?ref=petranto12',
+        desc:'Fantasy trading of creators',
+        routine:['Clout: daily claim/check-in','Core: trade cards / register decks','Engage 3 creator profiles','Free: claim rewards / keep streak']},
+      { cat:'Fantasy', tier:'A', key:'footballFun', name:'Football.fun', url:'https://pro.football.fun/login/?referral_code=UWM2GXU9V8O',
+        desc:'Fantasy football',
+        routine:['Complete tasks','Trade players','Join a team','Invite users']}
     ];
 
-    /* ===== Quality tiers (manual) ===== */
-    const QUALITY_TIERS = {
-      'DeFi': { S:['axiom','prjx'], A:['hyperlend','felix'], B:['hypurr','kinetiq'], C:['hyperbeat','paradex'], D:[] },
-      'SocialFi/InfoFi': { S:['kaito'], A:['xeet','fundamental'], B:['cookieFun','ethos','klout','wallchain'], C:['mindoshare','bantr','kudoswap'], D:[] },
-      'Web3 Quests': { S:['galxe'], A:['astranovaBP','edgenAura'], B:['consumerfi'], C:['rallyWait','addicted'], D:[] },
-      'Fantasy': { S:['fantasyTop'], A:[], B:['footballFun'], C:[], D:[] }
-    };
-
-    // ===== PERIODS =====
-    const PAST_DAYS=7, PAST_WEEKS=4, PAST_MONTHS=3, PAST_QUARTERS=3;
-    const PRE_HISTORY_COLS = 1 + 4 + 2; // tier + (project,desc,routine,score) + today(2)
-
+    // ====== PERIODS ======
+    const PAST_DAYS = 7, PAST_WEEKS = 4, PAST_MONTHS = 3, PAST_QUARTERS = 3;
     const pad = n => String(n).padStart(2,'0');
-    const today = ()=>{const d=new Date();return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;};
-    const addDays=(d,delta)=>{const nd=new Date(d);nd.setDate(nd.getDate()+delta);return nd;};
-    const fmtDayCol=d=>{const m=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];return `${pad(d.getDate())}-${m[d.getMonth()]}`;};
-    const getISOWeek=d=>{const date=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()));const dayNum=date.getUTCDay()||7;date.setUTCDate(date.getUTCDate()+4-dayNum);const ys=new Date(Date.UTC(date.getUTCFullYear(),0,1));return Math.ceil((((date-ys)/86400000)+1)/7);};
-    const quarterOf=d=>Math.floor(d.getMonth()/3)+1;
-    const toDateOnly=x=>new Date(new Date(x).getFullYear(), new Date(x).getMonth(), new Date(x).getDate());
-    const dayDiff=(a,b)=>Math.floor((toDateOnly(b)-toDateOnly(a))/86400000);
-    const lastNDaysDesc=n=>Array.from({length:n},(_,i)=>addDays(new Date(),-(i+1)));
-    const lastNWeeksDesc=n=>Array.from({length:n},(_,i)=>{const now=new Date();const end=addDays(now,-7*i);const start=addDays(now,-7*(i+1));return {start,end};});
-    const lastNMonthsDesc=n=>Array.from({length:n},(_,i)=>{const now=new Date();const ref=new Date(now.getFullYear(),now.getMonth()-(i+1),1);const start=new Date(ref.getFullYear(),ref.getMonth(),1);const end=new Date(ref.getFullYear(),ref.getMonth()+1,1);return {start,end,label:start.toLocaleString('en',{month:'long'})};});
-    const lastNQuartersDesc=n=>{const out=[];const now=new Date();let q=quarterOf(now)-1,y=now.getFullYear();for(let i=0;i<n;i++){if(q===0){q=4;y-=1;}const sm=(q-1)*3;const start=new Date(y,sm,1);const end=new Date(y,sm+3,1);out.push({start,end,label:`Q${q}-${String(y).slice(-2)}`});q--;}return out;};
+    const today = () => { const d=new Date(); return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`; };
+    const addDays = (d,delta)=>{const nd=new Date(d); nd.setDate(nd.getDate()+delta); return nd;};
+    const fmtDayCol = (d)=>{const m=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']; return `${pad(d.getDate())}-${m[d.getMonth()]}`;};
+    const getISOWeek=(d)=>{const date=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()));const dayNum=date.getUTCDay()||7;date.setUTCDate(date.getUTCDate()+4-dayNum);const ys=new Date(Date.UTC(date.getUTCFullYear(),0,1));return Math.ceil((((date-ys)/86400000)+1)/7);};
+    const quarterOf=(d)=>Math.floor(d.getMonth()/3)+1;
+    const toDateOnly = (x)=> new Date(new Date(x).getFullYear(), new Date(x).getMonth(), new Date(x).getDate());
+    const dayDiff = (a,b)=> Math.floor((toDateOnly(b) - toDateOnly(a)) / 86400000);
 
-    // ===== STORAGE =====
-    const STORAGE_KEY='airdropTracker.v5';
-    const CAT_STATE_KEY='airdrop.catState.v1';
-    const load=()=>{try{return JSON.parse(localStorage.getItem(STORAGE_KEY))||{}}catch{return {}}};
-    const save=data=>localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-    const ensureProj=(data,key)=>{if(!data[key]) data[key]={daily:{},active:true};return data[key];};
+    const lastNDaysDesc=(n)=>Array.from({length:n},(_,i)=>addDays(new Date(),-(i+1)));
+    const lastNWeeksDesc=(n)=>Array.from({length:n},(_,i)=>{const now=new Date();const end=addDays(now,-7*i);const start=addDays(now,-7*(i+1));return {start,end};});
+    const lastNMonthsDesc=(n)=>Array.from({length:n},(_,i)=>{const now=new Date();const ref=new Date(now.getFullYear(),now.getMonth()-(i+1),1);const start=new Date(ref.getFullYear(),ref.getMonth(),1);const end=new Date(ref.getFullYear(),ref.getMonth()+1,1);return {start,end,label:start.toLocaleString('en',{month:'long'})};});
+    const lastNQuartersDesc=(n)=>{const out=[];const now=new Date();let q=quarterOf(now)-1,y=now.getFullYear();for(let i=0;i<n;i++){if(q===0){q=4;y-=1;}const sm=(q-1)*3;const start=new Date(y,sm,1);const end=new Date(y,sm+3,1);out.push({start,end,label:`Q${q}-${String(y).slice(-2)}`});q--; }return out;};
 
-    // active
-    const getActive=key=>{const d=load();return d[key]?.active!==false;};
-    function setActive(key,val){const d=load();ensureProj(d,key).active=!!val;save(d);}
+    // ====== STORAGE ======
+    const STORAGE_KEY = 'airdropTracker.v4';
+    const CAT_STATE_KEY = 'airdrop.catState.v1';
+    const load = ()=>{try{return JSON.parse(localStorage.getItem(STORAGE_KEY))||{}}catch{return {}}};
+    const save = (data)=>localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    const ensureProj=(data,key)=>{if(!data[key]) data[key]={daily:{}, active:true}; return data[key];};
+    function getActive(key){ const data = load(); return data[key]?.active !== false; }
+    function setActive(key,val){ const data=load(); ensureProj(data,key).active = !!val; save(data); }
 
     // day state
-    function setTodayState(key,patch){const d=load();const p=ensureProj(d,key);const t=today();if(!p.daily[t])p.daily[t]={clicked:false,farmed:false};Object.assign(p.daily[t],patch);save(d);}
-    const getDayState=(key,dateStr)=>{const d=load();return (d[key]&&d[key].daily&&d[key].daily[dateStr])||{clicked:false,farmed:false}};
-    const stateToColor=s=>(s.farmed&&s.clicked)?'green':(s.clicked?'yellow':'red');
+    const setTodayState=(key,patch)=>{const data=load();const proj=ensureProj(data,key);const t=today(); if(!proj.daily[t]) proj.daily[t]={clicked:false,farmed:false}; Object.assign(proj.daily[t],patch); save(data);};
+    const getDayState=(key,dateStr)=>{const data=load();return (data[key]&&data[key].daily&&data[key].daily[dateStr])||{clicked:false,farmed:false}};
+    const stateToColor=(s)=>(s.farmed&&s.clicked)?'green':(s.clicked?'yellow':'red');
 
-    // 100% rule
-    function windowStatsDays(key,start,end){
-      let total=0,clicked=0,farmed=0;
-      for(let d=new Date(start);d<end;d.setDate(d.getDate()+1)){
+    // ====== 100% RULE HELPERS ======
+    function windowStatsDays(key, start, end){
+      let total=0, clicked=0, farmed=0;
+      for(let d=new Date(start); d<end; d.setDate(d.getDate()+1)){
         total++;
         const ds=`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
-        const s=getDayState(key,ds);
-        if(s.clicked)clicked++;
-        if(s.clicked&&s.farmed)farmed++;
+        const s=getDayState(key, ds);
+        if (s.clicked) clicked++;
+        if (s.clicked && s.farmed) farmed++;
       }
       let color='red';
-      if(total>0&&farmed===total)color='green';
-      else if(clicked>0||farmed>0)color='yellow';
-      return{color,clickedDays:clicked,farmedDays:farmed,totalDays:total};
+      if (total>0 && farmed===total) color='green';
+      else if (clicked>0 || farmed>0) color='yellow';
+      return { color, clickedDays:clicked, farmedDays:farmed, totalDays:total };
     }
-    const monthBounds=dt=>({start:new Date(dt.getFullYear(),dt.getMonth(),1),end:new Date(dt.getFullYear(),dt.getMonth()+1,1)});
-    function windowStatsQuarterMonths(key,start,end){
-      let totalMonths=0,greenMonths=0,cursor=new Date(start);
+    function monthBounds(dt){ return {start:new Date(dt.getFullYear(),dt.getMonth(),1), end:new Date(dt.getFullYear(),dt.getMonth()+1,1)}; }
+    function windowStatsQuarterMonths(key, start, end){
+      let totalMonths=0, greenMonths=0;
+      let cursor=new Date(start);
       while(cursor<end){
-        const {start:ms,end:me}=monthBounds(cursor);
-        if(ms>=end)break;
+        const {start:ms, end:me} = monthBounds(cursor);
+        if (ms>=end) break;
         totalMonths++;
-        const ds=windowStatsDays(key,ms,me);
-        if(ds.totalDays>0&&ds.farmedDays===ds.totalDays)greenMonths++;
-        cursor=me;
+        const ds=windowStatsDays(key, ms, me);
+        if (ds.totalDays>0 && ds.farmed===ds.totalDays) greenMonths++;
+        cursor = me;
       }
       let color='red';
-      if(greenMonths===totalMonths&&totalMonths>0)color='green';
-      else if(greenMonths>0)color='yellow';
-      return{color,greenMonths,totalMonths};
+      if (greenMonths===totalMonths && totalMonths>0) color='green';
+      else if (greenMonths>0) color='yellow';
+      return { color, greenMonths, totalMonths };
     }
 
-    // Routine score
-    function completionStatsForProject(key){
-      const data=load();const daily=(data[key]&&data[key].daily)||{};
-      const allDates=Object.keys(daily).sort();
-      let reg=REGISTERED_AT?toDateOnly(REGISTERED_AT):(allDates.length?toDateOnly(new Date(allDates[0])):toDateOnly(new Date()));
-      const tdy=toDateOnly(new Date());
-      const totalDays=Math.max(1,dayDiff(reg,tdy)+1);
-      let completed=0;
-      for(const ds of Object.keys(daily)){
-        const d=toDateOnly(new Date(ds));
-        if(d>=reg&&d<=tdy) if(daily[ds]?.farmed) completed++;
+    // ====== Routine Score ======
+    function completionStatsForProject(key) {
+      const data = load();
+      const daily = (data[key] && data[key].daily) || {};
+      const allDates = Object.keys(daily).sort();
+      let reg = REGISTERED_AT ? toDateOnly(REGISTERED_AT)
+               : (allDates.length ? toDateOnly(new Date(allDates[0])) : toDateOnly(new Date()));
+      const tdy = toDateOnly(new Date());
+      const totalDays = Math.max(1, dayDiff(reg, tdy) + 1);
+      let completed = 0;
+      for (const ds of Object.keys(daily)) {
+        const d = toDateOnly(new Date(ds));
+        if (d >= reg && d <= tdy) if (daily[ds]?.farmed) completed++;
       }
-      const pct=Math.round(100*(completed/totalDays));
-      return {pct,completed,totalDays,since:`${reg.getFullYear()}-${pad(reg.getMonth()+1)}-${pad(reg.getDate())}`};
+      const pct = Math.round(100 * (completed / totalDays));
+      return { pct, completed, totalDays, since: `${reg.getFullYear()}-${pad(reg.getMonth()+1)}-${pad(reg.getDate())}` };
     }
-    const projectPct=key=>completionStatsForProject(key).pct||0;
+    function projectPct(key){ return completionStatsForProject(key).pct || 0; }
     function completionStatsForCategory(catName){
-      const projs=PROJECTS.filter(p=>p.cat===catName&&getActive(p.key));
-      if(!projs.length) return {pct:0};
-      const avg=Math.round(projs.reduce((s,p)=>s+projectPct(p.key),0)/projs.length);
-      return {pct:avg};
+      const projs = PROJECTS.filter(p=>p.cat===catName && getActive(p.key));
+      if (!projs.length) return { pct:0 };
+      const avg = Math.round(projs.reduce((sum,p)=>sum+projectPct(p.key), 0) / projs.length);
+      return { pct: avg };
     }
 
-    // Tier helpers
-    const TIER_ORDER=['S','A','B','C','D'];
-    function tierOf(cat,key){const t=QUALITY_TIERS[cat]||{};for(const x of TIER_ORDER){if((t[x]||[]).includes(key))return x;}return'D';}
-    function tierIndex(cat,key){return TIER_ORDER.indexOf(tierOf(cat,key));}
-
-    // DOM targets
-    const headEl=document.getElementById('trackerHead');
+    // ====== RENDER ======
     const bodyEl=document.getElementById('trackerBody');
-
-    // Remove global header entirely
-    function renderHead(){ headEl.innerHTML=''; }
-
     const escapeHtml=(s='')=>s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
     const renderRoutine=(arr)=>{ if(!arr||!arr.length) return ''; const items=arr.slice(0,6).map(x=>`<li>${escapeHtml(x)}</li>`).join(''); return `<ul class="mb-0">${items}</ul>`; };
 
-    function makeStatusCell(color,title=''){const td=document.createElement('td');td.className='text-center';if(title)td.title=title;const div=document.createElement('div');div.className=`status-box status-${color}`;td.appendChild(div);return td;}
-    function setCellStatus(td,color,title=''){td.title=title||'';const box=td.querySelector('.status-box');if(!box)return;box.className=`status-box status-${color}`;}
-
-    function updateHistoryCellsForRow(key,tr,cat){
-      const days=lastNDaysDesc(PAST_DAYS),weeks=lastNWeeksDesc(PAST_WEEKS),months=lastNMonthsDesc(PAST_MONTHS),quarters=lastNQuartersDesc(PAST_QUARTERS);
-      let i = tr.dataset.precols ? parseInt(tr.dataset.precols,10) : PRE_HISTORY_COLS;
-
-      days.forEach(d=>{const ds=`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;setCellStatus(tr.cells[i++],stateToColor(getDayState(key,ds)));});
-      weeks.forEach(w=>{const st=windowStatsDays(key,w.start,w.end);const pct=st.totalDays?Math.round(100*st.farmedDays/st.totalDays):0;setCellStatus(tr.cells[i++],st.color,`${st.farmedDays}/${st.totalDays} days farmed (${pct}%)`);});
-      months.forEach(m=>{const st=windowStatsDays(key,m.start,m.end);const pct=st.totalDays?Math.round(100*st.farmedDays/st.totalDays):0;setCellStatus(tr.cells[i++],st.color,`${st.farmedDays}/${st.totalDays} days farmed (${pct}%)`);});
-      quarters.forEach(q=>{const st=windowStatsQuarterMonths(key,q.start,q.end);const pct=st.totalMonths?Math.round(100*st.greenMonths/st.totalMonths):0;setCellStatus(tr.cells[i++],st.color,`${st.greenMonths}/${st.totalMonths} months fully farmed (${pct}%)`);});
-      repaintInactiveHistory(key,tr);
-      if(cat)renderCategoryScore(cat);
+    function makeStatusCell(color, title=''){
+      const td=document.createElement('td'); td.className='text-center'; if(title) td.title=title;
+      const div=document.createElement('div'); div.className=`status-box status-${color}`; td.appendChild(div);
+      return td;
     }
-
-    // collapse state
-    const getCatState=()=>{try{return JSON.parse(localStorage.getItem(CAT_STATE_KEY))||{}}catch{return {}}};
-    const setCatState=s=>localStorage.setItem(CAT_STATE_KEY, JSON.stringify(s));
-
+    function setCellStatus(td, color, title=''){
+      td.title = title || '';
+      const box=td.querySelector('.status-box'); if(!box) return;
+      box.classList.remove('status-green','status-yellow','status-red','status-grey');
+      box.classList.add(`status-${color}`);
+    }
     function renderCategoryScore(cat){
-      const score=completionStatsForCategory(cat);
-      const el=document.getElementById(`cat-score-${cat}`);
-      if(!el)return;
-      el.innerHTML=`<small class="text-secondary">${score.pct}%</small>
-        <div class="progress"><div class="progress-bar ${score.pct>=70?'bg-success':score.pct>=30?'bg-warning':'bg-danger'}" style="width:${score.pct}%"></div></div>`;
+      const score = completionStatsForCategory(cat);
+      const el = document.getElementById(`cat-score-${cat}`);
+      if (!el) return;
+      el.innerHTML = `
+        <small class="text-secondary">${score.pct}%</small>
+        <div class="progress"><div class="progress-bar ${score.pct>=70?'bg-success':score.pct>=30?'bg-warning':'bg-danger'}" style="width:${score.pct}%"></div></div>
+      `;
     }
-
-    function linkChip(name,url,key){const span=document.createElement('span');span.className='chip';const a=document.createElement('a');a.href=url;a.target='_blank';a.rel='noopener';a.textContent=name;a.addEventListener('click',()=>setTodayState(key,{clicked:true}));span.appendChild(a);return span;}
-
-    function renderTierBlock(cat,items){
-      const tiers=QUALITY_TIERS[cat]||{S:[],A:[],B:[],C:[],D:[]};
-      const col=(lbl,cls,keys)=>{const div=document.createElement('div');div.className='tier-colbox';div.innerHTML=`<div class="tier-head"><span class="tier-badge ${cls.toLowerCase()}">${lbl}</span></div>`;const here=(keys||[]).map(k=>items.find(i=>i.key===k)).filter(Boolean);if(!here.length)div.appendChild(document.createTextNode('—'));else here.forEach(p=>div.appendChild(linkChip(p.name,p.url,p.key)));return div;};
-      const wrap=document.createElement('div');wrap.className='tier-wrap';
-      wrap.appendChild(col('S','s',tiers.S));wrap.appendChild(col('A','a',tiers.A));wrap.appendChild(col('B','b',tiers.B));wrap.appendChild(col('C','c',tiers.C));wrap.appendChild(col('D','d',tiers.D));
-      return wrap;
+    function repaintInactiveHistory(key, tr){
+      const active = getActive(key);
+      const startIdx = 1 /*tier*/ + 3 /*proj,desc,routine*/ + 1 /*score*/ + 2 /*today*/;
+      for (let i=startIdx; i<tr.cells.length; i++){
+        const td = tr.cells[i];
+        if (!active){
+          td.classList.add('inactive-cell');
+          setCellStatus(td, 'grey', td.title);
+        } else {
+          td.classList.remove('inactive-cell');
+        }
+      }
     }
+    function updateHistoryCellsForRow(key,tr, cat){
+      const days=lastNDaysDesc(PAST_DAYS), weeks=lastNWeeksDesc(PAST_WEEKS), months=lastNMonthsDesc(PAST_MONTHS), quarters=lastNQuartersDesc(PAST_QUARTERS);
+      const preHistoryCols = 1 + 3 + 1 + 2;
+      let colIndex = preHistoryCols;
 
-    function renderCategoryLegend(container){
-      const div=document.createElement('div');div.className='cat-legend';
-      div.innerHTML=`
-        <div class="entry"><span class="sw sw-s"></span><strong>S</strong>&nbsp;Must-farm / top quality</div>
-        <div class="entry"><span class="sw sw-a"></span><strong>A</strong>&nbsp;High priority</div>
-        <div class="entry"><span class="sw sw-b"></span><strong>B</strong>&nbsp;Optional / watchlist</div>
-        <div class="entry"><span class="sw sw-c"></span><strong>C</strong>&nbsp;Experimental / WL</div>
-        <div class="entry"><span class="sw sw-d"></span><strong>D</strong>&nbsp;Long shots</div>`;
-      container.appendChild(div);
-    }
+      days.forEach(d=>{
+        const ds=`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+        const s=getDayState(key,ds);
+        setCellStatus(tr.cells[colIndex++], stateToColor(s));
+      });
+      weeks.forEach(w=>{
+        const st = windowStatsDays(key, w.start, w.end);
+        const pct = st.totalDays ? Math.round(100*st.farmedDays/st.totalDays) : 0;
+        const tip = `${st.farmedDays}/${st.totalDays} days farmed (${pct}%)`;
+        setCellStatus(tr.cells[colIndex++], st.color, tip);
+      });
+      months.forEach(m=>{
+        const st = windowStatsDays(key, m.start, m.end);
+        const pct = st.totalDays ? Math.round(100*st.farmedDays/st.totalDays) : 0;
+        const tip = `${st.farmedDays}/${st.totalDays} days farmed (${pct}%)`;
+        setCellStatus(tr.cells[colIndex++], st.color, tip);
+      });
+      quarters.forEach(q=>{
+        const st = windowStatsQuarterMonths(key, q.start, q.end);
+        const pct = st.totalMonths ? Math.round(100*st.greenMonths/st.totalMonths) : 0;
+        const tip = `${st.greenMonths}/${st.totalMonths} months fully farmed (${pct}%)`;
+        setCellStatus(tr.cells[colIndex++], st.color, tip);
+      });
 
-    function makeCatSubHeaders(days,weeks,months,quarters){
-      const tr1=document.createElement('tr'); tr1.className='section-head';
-      tr1.innerHTML=`
-        <th class="tier-col">Tier</th>
-        <th class="project-col">Project</th>
-        <th class="desc-col">Description</th>
-        <th class="routine-col">Routine</th>
-        <th class="score-col">Routine Score</th>
-        <th colspan="2">Today</th>
-        <th colspan="${days.length}">Past 7 days</th>
-        <th colspan="${weeks.length}">Past weeks</th>
-        <th colspan="${months.length}">Past Months</th>
-        <th colspan="${quarters.length}">Past Quarters</th>`;
-      const tr2=document.createElement('tr'); tr2.className='section-head';
-      tr2.innerHTML=`
-        <th></th>
-        <th></th>
-        <th></th>
-        <th></th>
-        <th></th>
-        <th class="today-col">Click</th>
-        <th class="today-col">Farm</th>
-        ${days.map(d=>`<th class="history-col">${fmtDayCol(d)}</th>`).join('')}
-        ${weeks.map(w=>`<th class="history-col">CW${getISOWeek(addDays(w.end,-1))}</th>`).join('')}
-        ${months.map(m=>`<th class="history-col">${m.label}</th>`).join('')}
-        ${quarters.map(q=>`<th class="history-col">${q.label}</th>`).join('')}`;
-      return [tr1,tr2];
+      repaintInactiveHistory(key, tr);
+      if (cat) renderCategoryScore(cat);
     }
 
     function renderBody(){
       bodyEl.innerHTML='';
-      const days=lastNDaysDesc(PAST_DAYS),weeks=lastNWeeksDesc(PAST_WEEKS),months=lastNMonthsDesc(PAST_MONTHS),quarters=lastNQuartersDesc(PAST_QUARTERS);
-      const totalCols = PRE_HISTORY_COLS + days.length + weeks.length + months.length + quarters.length;
-
-      const catOrder=['SocialFi/InfoFi','Web3 Quests','DeFi','Fantasy'];
-      const state=getCatState();
+      const days=lastNDaysDesc(PAST_DAYS), weeks=lastNWeeksDesc(PAST_WEEKS), months=lastNMonthsDesc(PAST_MONTHS), quarters=lastNQuartersDesc(PAST_QUARTERS);
+      const totalCols = 1 /*tier*/ + 3 /*project, desc, routine*/ + 1 /*score*/ + 2 /*today*/ + days.length + weeks.length + months.length + quarters.length;
+      const catOrder = ['DeFi','SocialFi/InfoFi','Web3 Quests','Fantasy'];
+      const state = getCatState();
 
       catOrder.forEach(cat=>{
-        let items=PROJECTS.filter(p=>p.cat===cat);
-        if(!items.length) return;
-        items=items.sort((a,b)=>tierIndex(cat,a.key)-tierIndex(cat,b.key) || a.name.localeCompare(b.name));
+        const itemsAll = PROJECTS.filter(p=>p.cat===cat);
+        if (!itemsAll.length) return;
 
-        const names=items.map(i=>i.name).join(', ');
-        const header=document.createElement('tr');
-        header.className='cat-row';
-        header.dataset.catHeader=cat;
-        const collapsed=state[cat]===true;
-        const arrow=collapsed?'▶':'▼';
-        header.innerHTML=`
+        // Category header + legend (English)
+        const names = itemsAll.map(i=>i.name).join(', ');
+        const header = document.createElement('tr');
+        header.className = 'cat-row';
+        header.dataset.catHeader = cat;
+        const collapsed = state[cat] === true;
+        const arrow = collapsed ? '▶' : '▼';
+        header.innerHTML = `
           <td colspan="${totalCols}">
             <div class="cat-title">
               <span class="cat-toggle" data-cat="${cat}">${arrow}</span>
               <span class="fw-semibold">${cat}</span>
               <span class="cat-desc">— ${escapeHtml(names)}</span>
-              <span class="badge bg-secondary cat-badge">${items.length}</span>
+              <span class="badge bg-secondary cat-badge">${itemsAll.length}</span>
               <span class="cat-score ms-auto" id="cat-score-${cat}"></span>
+              <div class="w-100 small text-secondary mt-1">
+                <strong>Tier legend:</strong>
+                <span class="tier-pill S">S</span> Must-farm / top quality &nbsp;&nbsp;
+                <span class="tier-pill A">A</span> High priority &nbsp;&nbsp;
+                <span class="tier-pill B">B</span> Optional / watchlist &nbsp;&nbsp;
+                <span class="tier-pill C">C</span> Experimental / WL &nbsp;&nbsp;
+                <span class="tier-pill D">D</span> Long shots
+              </div>
             </div>
           </td>`;
         bodyEl.appendChild(header);
-        renderCategoryLegend(header.children[0].children[0]);
         renderCategoryScore(cat);
 
-        /* Tier list row */
-        const tierRow=document.createElement('tr'); tierRow.className='tier-row';
-        tierRow.dataset.cat=cat; tierRow.dataset.hidden=collapsed?"1":"0";
-        const tdTier=document.createElement('td'); tdTier.colSpan=totalCols; tdTier.appendChild(renderTierBlock(cat,items));
-        tierRow.appendChild(tdTier); bodyEl.appendChild(tierRow);
+        // Horizontal tier bar row
+        const tierBar = document.createElement('tr');
+        tierBar.innerHTML = `<td colspan="${totalCols}">
+          <div class="tierbar">
+            <span class="tier-pill S">S</span>
+            <span class="tier-pill A">A</span>
+            <span class="tier-pill B">B</span>
+            <span class="tier-pill C">C</span>
+            <span class="tier-pill D">D</span>
+          </div>
+        </td>`;
+        bodyEl.appendChild(tierBar);
 
-        /* Per-category headers (moved from global) */
-        const [h1,h2]=makeCatSubHeaders(days,weeks,months,quarters);
-        [h1,h2].forEach(h=>{h.dataset.cat=cat;h.dataset.hidden=collapsed?"1":"0"; bodyEl.appendChild(h);});
+        // Mini column head (inside category)
+        const mini = document.createElement('tr'); mini.className='minihead';
+        mini.innerHTML =
+          `<th class="tier-col text-center">Tier</th>
+           <th class="project-col text-center">Project</th>
+           <th class="desc-col text-center">Description</th>
+           <th class="routine-col text-center">Routine</th>
+           <th class="score-col text-center">Routine Score</th>
+           <th class="today-col">Click</th>
+           <th class="today-col">Farm</th>
+           ${days.map(d=>`<th class="history-col">${fmtDayCol(d)}</th>`).join('')}
+           ${weeks.map(w=>`<th class="history-col">CW${getISOWeek(addDays(w.end,-1))}</th>`).join('')}
+           ${months.map(m=>`<th class="history-col">${m.label}</th>`).join('')}
+           ${quarters.map(q=>`<th class="history-col">${q.label}</th>`).join('')}`;
+        bodyEl.appendChild(mini);
 
-        /* Groups by tier for merged first column */
-        const groups=['S','A','B','C','D'].map(t=>({t,list:items.filter(p=>tierOf(cat,p.key)===t)})).filter(g=>g.list.length>0);
+        // Sort by tier S→A→B→C→D
+        const ORDER = ['S','A','B','C','D'];
+        ORDER.forEach(tier=>{
+          const group = itemsAll.filter(p=>p.tier===tier);
+          if (!group.length) return;
 
-        groups.forEach(g=>{
-          g.list.forEach((p,idx)=>{
-            const tr=document.createElement('tr');
-            tr.dataset.cat=cat; tr.dataset.hidden=collapsed?"1":"0";
-            const isActive=getActive(p.key);
-            if(!isActive) tr.classList.add('inactive');
+          group.forEach((p, idx)=>{
+            const tr=document.createElement('tr'); tr.dataset.cat = cat; tr.dataset.hidden = collapsed ? "1" : "0";
+            const isActive = getActive(p.key);
+            if (!isActive) tr.classList.add('inactive');
 
-            const hasTierCell=(idx===0);
-            tr.dataset.precols = hasTierCell ? PRE_HISTORY_COLS : (PRE_HISTORY_COLS - 1);
-
-            if(hasTierCell){
-              const tdMerged=document.createElement('td');
-              tdMerged.className=`tier-col tier-merge tierbg-${g.t}`;
-              tdMerged.rowSpan=g.list.length;
-              tdMerged.textContent=g.t;  // the letter, centered & vertically middle
-              tr.appendChild(tdMerged);
+            // Tier merged cell (first row per group)
+            if (idx===0){
+              const tdTier = document.createElement('td');
+              tdTier.className = `tier-col tier-cell tier-${tier}`;
+              tdTier.rowSpan = group.length;
+              tdTier.innerHTML = `<div class="tier-label">${tier}</div>`;
+              tr.appendChild(tdTier);
             }
 
-            // Project cell + track
+            // Project + switch
             const projectCell=document.createElement('td'); projectCell.className='project-cell';
-            const trackWrap=document.createElement('span'); trackWrap.className='form-check form-switch form-switch-sm d-inline-flex align-items-center me-2';
-            const track=document.createElement('input'); track.type='checkbox'; track.className='form-check-input'; track.role='switch'; track.checked=isActive; track.title='Include in score';
-            let cbClick,cbFarm;
-            track.addEventListener('change',()=>{setActive(p.key,track.checked);tr.classList.toggle('inactive',!track.checked);if(cbClick&&cbFarm){cbClick.disabled=cbFarm.disabled=!track.checked;} repaintInactiveHistory(p.key,tr); renderCategoryScore(cat);});
-            trackWrap.appendChild(track); projectCell.appendChild(trackWrap);
+            const trackWrap = document.createElement('span');
+            trackWrap.className = 'form-check form-switch form-switch-sm d-inline-flex align-items-center me-2';
+            const track = document.createElement('input');
+            track.type='checkbox'; track.className='form-check-input'; track.role='switch';
+            track.checked = isActive; track.title='Include in score';
+            track.addEventListener('change', ()=>{
+              setActive(p.key, track.checked);
+              tr.classList.toggle('inactive', !track.checked);
+              cbClick.disabled = cbFarm.disabled = !track.checked;
+              repaintInactiveHistory(p.key, tr);
+              renderCategoryScore(cat);
+            });
+            trackWrap.appendChild(track);
+            projectCell.appendChild(trackWrap);
 
             const a=document.createElement('a'); a.href=p.url; a.textContent=p.name; a.target='_blank'; a.rel='noopener';
-            a.addEventListener('click',()=>{ setTodayState(p.key,{clicked:true}); const cb=document.querySelector(`#click-${p.key}`); if(cb) cb.checked=true; updateHistoryCellsForRow(p.key,tr,cat);});
+            a.addEventListener('click',()=>{ setTodayState(p.key,{clicked:true}); const cb=document.querySelector(`#click-${p.key}`); if(cb) cb.checked=true; updateHistoryCellsForRow(p.key,tr,cat); });
             projectCell.appendChild(a);
 
-            if(p.referralNote||p.copyText){
+            if(p.referralNote || p.copyText){
               const span=document.createElement('span'); span.className='badge rounded-pill text-bg-secondary ms-2 note-badge code-badge';
-              span.title=p.referralNote||'Code'; span.textContent=p.referralNote||'Code';
-              span.addEventListener('click',async()=>{ if(p.copyText){ try{await navigator.clipboard.writeText(p.copyText); showToast(`Copied: ${p.copyText}`);}catch{ showToast('Copy failed'); } }});
+              span.title=p.referralNote || 'Code'; span.textContent=p.referralNote || 'Code';
+              span.addEventListener('click', async ()=>{ if(p.copyText){ try{ await navigator.clipboard.writeText(p.copyText); showToast(`Copied: ${p.copyText}`);}catch{ showToast('Copy failed'); } }});
               projectCell.appendChild(span);
             }
             tr.appendChild(projectCell);
 
-            const tdDesc=document.createElement('td'); tdDesc.className='desc-col'; tdDesc.textContent=p.desc||''; tr.appendChild(tdDesc);
+            // Description / Routine / Score
+            const tdDesc=document.createElement('td'); tdDesc.className='desc-col'; tdDesc.textContent=p.desc || ''; tr.appendChild(tdDesc);
             const tdRoutine=document.createElement('td'); tdRoutine.className='routine-col'; tdRoutine.innerHTML=renderRoutine(p.routine); tr.appendChild(tdRoutine);
 
-            const tdScore=document.createElement('td'); tdScore.className='score-col';
-            const s=completionStatsForProject(p.key);
-            tdScore.innerHTML=`<div class="d-flex align-items-center gap-2"><div class="flex-grow-1"><div class="progress" style="height:10px;"><div class="progress-bar bg-success" style="width:${s.pct}%"></div></div><div class="small text-secondary mt-1">${s.pct}% • ${s.completed}/${s.totalDays}d since ${s.since}</div></div></div>`;
+            const tdScore = document.createElement('td'); tdScore.className='score-col';
+            const s = completionStatsForProject(p.key);
+            tdScore.innerHTML = `
+              <div class="d-flex align-items-center gap-2">
+                <div class="flex-grow-1">
+                  <div class="progress" style="height:10px;">
+                    <div class="progress-bar bg-success" role="progressbar" style="width:${s.pct}%;" aria-valuenow="${s.pct}" aria-valuemin="0" aria-valuemax="100"></div>
+                  </div>
+                  <div class="small text-secondary mt-1">${s.pct}% • ${s.completed}/${s.totalDays}d since ${s.since}</div>
+                </div>
+              </div>`;
             tr.appendChild(tdScore);
 
             // Today
             const tdClick=document.createElement('td'); tdClick.className='text-center';
-            cbClick=document.createElement('input'); cbClick.type='checkbox'; cbClick.className='form-check-input'; cbClick.id=`click-${p.key}`; cbClick.setAttribute('readonly','readonly');
+            const cbClick=document.createElement('input'); cbClick.type='checkbox'; cbClick.className='form-check-input'; cbClick.id=`click-${p.key}`; cbClick.setAttribute('readonly','readonly');
             cbClick.checked=getDayState(p.key,today()).clicked; tdClick.appendChild(cbClick); tr.appendChild(tdClick);
 
             const tdFarm=document.createElement('td'); tdFarm.className='text-center';
-            cbFarm=document.createElement('input'); cbFarm.type='checkbox'; cbFarm.className='form-check-input'; cbFarm.id=`farm-${p.key}`;
+            const cbFarm=document.createElement('input'); cbFarm.type='checkbox'; cbFarm.className='form-check-input'; cbFarm.id=`farm-${p.key}`;
             cbFarm.checked=getDayState(p.key,today()).farmed;
             cbFarm.addEventListener('change',()=>{ setTodayState(p.key,{farmed:cbFarm.checked}); updateHistoryCellsForRow(p.key,tr,cat); });
             tdFarm.appendChild(cbFarm); tr.appendChild(tdFarm);
 
-            cbClick.disabled=cbFarm.disabled=!isActive;
+            cbClick.disabled = cbFarm.disabled = !isActive;
 
-            // Days
-            lastNDaysDesc(PAST_DAYS).forEach(d=>{const ds=`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`; tr.appendChild(makeStatusCell(stateToColor(getDayState(p.key,ds))));});
-            // Weeks
-            lastNWeeksDesc(PAST_WEEKS).forEach(w=>{const st=windowStatsDays(p.key,w.start,w.end);const pct=st.totalDays?Math.round(100*st.farmedDays/st.totalDays):0;tr.appendChild(makeStatusCell(st.color,`${st.farmedDays}/${st.totalDays} days farmed (${pct}%)`));});
-            // Months
-            lastNMonthsDesc(PAST_MONTHS).forEach(m=>{const st=windowStatsDays(p.key,m.start,m.end);const pct=st.totalDays?Math.round(100*st.farmedDays/st.totalDays):0;tr.appendChild(makeStatusCell(st.color,`${st.farmedDays}/${st.totalDays} days farmed (${pct}%)`));});
-            // Quarters
-            lastNQuartersDesc(PAST_QUARTERS).forEach(q=>{const st=windowStatsQuarterMonths(p.key,q.start,q.end);const pct=st.totalMonths?Math.round(100*st.greenMonths/st.totalMonths):0;tr.appendChild(makeStatusCell(st.color,`${st.greenMonths}/${st.totalMonths} months fully farmed (${pct}%)`));});
+            // History
+            lastNDaysDesc(PAST_DAYS).forEach(d=>{
+              const ds=`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+              tr.appendChild(makeStatusCell(stateToColor(getDayState(p.key,ds))));
+            });
+            lastNWeeksDesc(PAST_WEEKS).forEach(w=>{
+              const st = windowStatsDays(p.key, w.start, w.end);
+              const pct = st.totalDays ? Math.round(100*st.farmedDays/st.totalDays) : 0;
+              tr.appendChild(makeStatusCell(st.color, `${st.farmedDays}/${st.totalDays} days farmed (${pct}%)`));
+            });
+            lastNMonthsDesc(PAST_MONTHS).forEach(m=>{
+              const st = windowStatsDays(p.key, m.start, m.end);
+              const pct = st.totalDays ? Math.round(100*st.farmedDays/st.totalDays) : 0;
+              tr.appendChild(makeStatusCell(st.color, `${st.farmedDays}/${st.totalDays} days farmed (${pct}%)`));
+            });
+            lastNQuartersDesc(PAST_QUARTERS).forEach(q=>{
+              const st = windowStatsQuarterMonths(p.key, q.start, q.end);
+              const pct = st.totalMonths ? Math.round(100*st.greenMonths/st.totalMonths) : 0;
+              tr.appendChild(makeStatusCell(st.color, `${st.greenMonths}/${st.totalMonths} months fully farmed (${pct}%)`));
+            });
 
             bodyEl.appendChild(tr);
-            repaintInactiveHistory(p.key,tr);
+            repaintInactiveHistory(p.key, tr);
           });
         });
 
-        // collapse toggle
-        header.querySelector('.cat-toggle').addEventListener('click',()=>{
-          const st=getCatState();const willCollapse=!(st[cat]===true);st[cat]=willCollapse;setCatState(st);renderBody();refreshToggleAllButton();
+        // toggle persistence
+        header.querySelector('.cat-toggle').addEventListener('click', ()=>{
+          const st = getCatState();
+          const willCollapse = !(st[cat] === true);
+          st[cat] = willCollapse;
+          setCatState(st);
+          renderBody();
+          refreshToggleAllButton();
         });
       });
 
       refreshToggleAllButton();
     }
 
-    function repaintInactiveHistory(key,tr){
-      const active=getActive(key);
-      const startIdx=tr.dataset.precols?parseInt(tr.dataset.precols,10):PRE_HISTORY_COLS;
-      for(let i=startIdx;i<tr.cells.length;i++){
-        const td=tr.cells[i];
-        if(!active){td.classList.add('inactive-cell');setCellStatus(td,'grey',td.title);}
-        else td.classList.remove('inactive-cell');
+    // ====== Toast ======
+    const showToast=(msg)=>{const tb=document.getElementById('toastBody'); tb.textContent=msg; const toast=new bootstrap.Toast(document.getElementById('toast')); toast.show();};
+
+    // ====== Collapse state helpers & buttons ======
+    const getCatState = () => { try{ return JSON.parse(localStorage.getItem(CAT_STATE_KEY))||{} }catch{ return {} } };
+    const setCatState = (s) => localStorage.setItem(CAT_STATE_KEY, JSON.stringify(s));
+
+    function refreshToggleAllButton(){
+      const st = getCatState();
+      const cats = ['DeFi','SocialFi/InfoFi','Web3 Quests','Fantasy'].filter(c=>PROJECTS.some(p=>p.cat===c));
+      const allExpanded  = cats.every(c=>st[c]!==true);
+      const btn = document.getElementById('toggleAllBtn');
+      btn.textContent = allExpanded ? 'Collapse all' : 'Expand all';
+    }
+
+    document.getElementById('toggleAllBtn').addEventListener('click', ()=>{
+      const btn = document.getElementById('toggleAllBtn');
+      const expand = btn.textContent.trim().toLowerCase().includes('expand');
+      const st = getCatState();
+      ['DeFi','SocialFi/InfoFi','Web3 Quests','Fantasy'].forEach(cat=>{
+        st[cat] = expand ? false : true; // false => expanded, true => collapsed
+      });
+      setCatState(st);
+      renderBody();
+    });
+
+    document.getElementById('resetTodayBtn').addEventListener('click',()=>{
+      const data=load(); const t=today();
+      PROJECTS.forEach(p=>{ if(data[p.key]?.daily?.[t]) data[p.key].daily[t]={clicked:false,farmed:false};});
+      save(data); renderBody(); showToast('Today reset.');
+    });
+    document.getElementById('resetAllBtn').addEventListener('click',()=>{
+      if(!confirm('This will erase ALL saved history for this tracker. Continue?')) return;
+      localStorage.removeItem(STORAGE_KEY); renderBody(); showToast('All data cleared.');
+    });
+    document.getElementById('exportBtn').addEventListener('click',()=>{
+      const blob=new Blob([localStorage.getItem(STORAGE_KEY)||'{}'],{type:'application/json'});
+      const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download=`airdrop-tracker-${today()}.json`; a.click(); URL.revokeObjectURL(url);
+    });
+    document.getElementById('importInput').addEventListener('change',async(e)=>{
+      const file=e.target.files?.[0]; if(!file) return; const text=await file.text();
+      try{ JSON.parse(text); localStorage.setItem(STORAGE_KEY,text); renderBody(); showToast('Import successful.'); }
+      catch{ showToast('Invalid JSON file.'); } finally{ e.target.value=''; }
+    });
+
+    // Donate
+    const donateModal = new bootstrap.Modal(document.getElementById('donateModal'));
+    document.getElementById('donateBtn').addEventListener('click', ()=>{
+      document.getElementById('evmAddr').value = DONATE_ETH_ADDRESS;
+      document.getElementById('solAddr').value = DONATE_SOL_ADDRESS;
+      donateModal.show();
+    });
+    document.getElementById('copyEvm').addEventListener('click', async ()=>{
+      try{ await navigator.clipboard.writeText(DONATE_ETH_ADDRESS); showToast('EVM address copied'); }catch{}
+    });
+    document.getElementById('copySol').addEventListener('click', async ()=>{
+      try{ await navigator.clipboard.writeText(DONATE_SOL_ADDRESS); showToast('Solana address copied'); }catch{}
+    });
+
+    // ====== Supabase Auth & Cloud ======
+    const sbModal = new bootstrap.Modal(document.getElementById('sbModal'));
+    document.getElementById('sbAccountBtn').addEventListener('click', async ()=>{ await refreshSbAuthUI(); sbModal.show(); });
+
+    async function upsertProfile(user){
+      await sb.from('profiles').upsert({ user_id: user.id, email: user.email || null }, { onConflict: 'user_id' });
+    }
+    async function loadProfile(user){
+      const { data: prof } = await sb.from('profiles').select('registered_at, email').eq('user_id', user.id).single();
+      REGISTERED_AT = prof?.registered_at ? new Date(prof.registered_at) : null;
+      renderBody();
+    }
+    async function refreshSbAuthUI(){
+      const { data: { user } } = await sb.auth.getUser();
+      const authArea = document.getElementById('sbAuthArea');
+      const userArea = document.getElementById('sbUserArea');
+      if (user) {
+        IS_AUTH = true; authArea.classList.add('d-none'); userArea.classList.remove('d-none');
+        document.getElementById('sbUserEmail').textContent = user.email || '(no email)';
+        await upsertProfile(user); await loadProfile(user);
+      } else {
+        IS_AUTH = false; authArea.classList.remove('d-none'); userArea.classList.add('d-none');
+        REGISTERED_AT = null; renderBody();
       }
     }
 
-    // Toast
-    const showToast=msg=>{const tb=document.getElementById('toastBody');tb.textContent=msg;new bootstrap.Toast(document.getElementById('toast')).show();};
-
-    // Buttons
-    function refreshToggleAllButton(){
-      const st=getCatState();const cats=['SocialFi/InfoFi','Web3 Quests','DeFi','Fantasy'].filter(c=>PROJECTS.some(p=>p.cat===c));
-      const allExpanded=cats.every(c=>st[c]!==true);
-      document.getElementById('toggleAllBtn').textContent=allExpanded?'Collapse all':'Expand all';
-    }
-    document.getElementById('toggleAllBtn').addEventListener('click',()=>{
-      const btn=document.getElementById('toggleAllBtn');const expand=btn.textContent.trim().toLowerCase().includes('expand');
-      const st=getCatState();['SocialFi/InfoFi','Web3 Quests','DeFi','Fantasy'].forEach(cat=>{st[cat]=expand?false:true;});setCatState(st);renderBody();
+    document.getElementById('sbSendLink').addEventListener('click', async ()=>{
+      const email = document.getElementById('sbEmail').value.trim();
+      if (!email) return showToast('Enter an email.');
+      const { error } = await sb.auth.signInWithOtp({ email, options: { emailRedirectTo: window.location.href } });
+      showToast(error ? `Error: ${error.message}` : 'Magic link sent. Check your inbox.');
     });
-    document.getElementById('resetTodayBtn').addEventListener('click',()=>{const data=load();const t=today();PROJECTS.forEach(p=>{if(data[p.key]?.daily?.[t])data[p.key].daily[t]={clicked:false,farmed:false};});save(data);renderBody();showToast('Today reset.');});
-    document.getElementById('resetAllBtn').addEventListener('click',()=>{if(!confirm('This will erase ALL saved history for this tracker. Continue?'))return;localStorage.removeItem(STORAGE_KEY);renderBody();showToast('All data cleared.');});
-    document.getElementById('exportBtn').addEventListener('click',()=>{const blob=new Blob([localStorage.getItem(STORAGE_KEY)||'{}'],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=`airdrop-tracker-${today()}.json`;a.click();URL.revokeObjectURL(url);});
-    document.getElementById('importInput').addEventListener('change',async(e)=>{const file=e.target.files?.[0];if(!file)return;const text=await file.text();try{JSON.parse(text);localStorage.setItem(STORAGE_KEY,text);renderBody();showToast('Import successful.');}catch{showToast('Invalid JSON file.');}finally{e.target.value='';}});
 
-    // Donate
-    const donateModal=new bootstrap.Modal(document.getElementById('donateModal'));
-    document.getElementById('donateBtn').addEventListener('click',()=>{document.getElementById('evmAddr').value=DONATE_ETH_ADDRESS;document.getElementById('solAddr').value=DONATE_SOL_ADDRESS;donateModal.show();});
-    document.getElementById('copyEvm').addEventListener('click',async()=>{try{await navigator.clipboard.writeText(DONATE_ETH_ADDRESS);showToast('EVM address copied');}catch{}});
-    document.getElementById('copySol').addEventListener('click',async()=>{try{await navigator.clipboard.writeText(DONATE_SOL_ADDRESS);showToast('Solana address copied');}catch{}});
+    async function sbRequireUser(){
+      const { data: { user } } = await sb.auth.getUser();
+      if (!user) { showToast('Please sign in first.'); throw new Error('no-user'); }
+      return user;
+    }
 
-    // Supabase auth
-    const sbModal=new bootstrap.Modal(document.getElementById('sbModal'));
-    document.getElementById('sbAccountBtn').addEventListener('click',async()=>{await refreshSbAuthUI();sbModal.show();});
-    async function upsertProfile(user){await sb.from('profiles').upsert({user_id:user.id,email:user.email||null},{onConflict:'user_id'});}
-    async function loadProfile(user){const {data:prof}=await sb.from('profiles').select('registered_at,email').eq('user_id',user.id).single();REGISTERED_AT=prof?.registered_at?new Date(prof.registered_at):null;renderHead();renderBody();}
-    async function refreshSbAuthUI(){const {data:{user}}=await sb.auth.getUser();const authArea=document.getElementById('sbAuthArea');const userArea=document.getElementById('sbUserArea');if(user){IS_AUTH=true;authArea.classList.add('d-none');userArea.classList.remove('d-none');document.getElementById('sbUserEmail').textContent=user.email||'(no email)';await upsertProfile(user);await loadProfile(user);}else{IS_AUTH=false;authArea.classList.remove('d-none');userArea.classList.add('d-none');REGISTERED_AT=null;renderHead();renderBody();}}
-    document.getElementById('sbSendLink').addEventListener('click',async()=>{const email=document.getElementById('sbEmail').value.trim();if(!email)return showToast('Enter an email.');const {error}=await sb.auth.signInWithOtp({email,options:{emailRedirectTo:window.location.href}});showToast(error?`Error: ${error.message}`:'Magic link sent. Check your inbox.');});
-    async function sbRequireUser(){const{data:{user}}=await sb.auth.getUser();if(!user){showToast('Please sign in first.');throw new Error('no-user');}return user;}
-    document.getElementById('sbSave').addEventListener('click',async()=>{try{const user=await sbRequireUser();const payload=load();const {error}=await sb.from('tracker_data').upsert({user_id:user.id,data:payload},{onConflict:'user_id'});showToast(error?`Save failed: ${error.message}`:'Saved to cloud.');if(!error)document.getElementById('sbStatus').textContent=`Last save: ${new Date().toLocaleString()}`;}catch{}});
-    document.getElementById('sbLoad').addEventListener('click',async()=>{try{const user=await sbRequireUser();const {data,error}=await sb.from('tracker_data').select('data').eq('user_id',user.id).single();if(error&&error.code!=='PGRST116'){showToast(`Load failed: ${error.message}`);return;}const remote=data?.data||{};const merged=mergeData(load(),remote);save(merged);renderBody();showToast('Loaded & merged from cloud.');document.getElementById('sbStatus').textContent=`Last load: ${new Date().toLocaleString()}`;}catch{}});
-    document.getElementById('sbSignOut').addEventListener('click',async()=>{await sb.auth.signOut();await refreshSbAuthUI();showToast('Signed out.');});
-    sb.auth.onAuthStateChange(()=>{refreshSbAuthUI();});
+    document.getElementById('sbSave').addEventListener('click', async ()=>{
+      try {
+        const user = await sbRequireUser();
+        const payload = load();
+        const { error } = await sb.from('tracker_data').upsert({ user_id: user.id, data: payload }, { onConflict: 'user_id' });
+        showToast(error ? `Save failed: ${error.message}` : 'Saved to cloud.');
+        if (!error) document.getElementById('sbStatus').textContent = `Last save: ${new Date().toLocaleString()}`;
+      } catch {}
+    });
 
-    function mergeData(a={},b={}){const out=JSON.parse(JSON.stringify(a||{}));for(const key of Object.keys(b||{})){if(!out[key])out[key]={daily:{},active:(b[key].active!==false)};const bd=(b[key]&&b[key].daily)||{};for(const d of Object.keys(bd)){const r=bd[d]||{clicked:false,farmed:false};const l=(out[key].daily&&out[key].daily[d])||{clicked:false,farmed:false};out[key].daily[d]={clicked:!!(l.clicked||r.clicked),farmed:!!(l.farmed||r.farmed)};}if(typeof b[key].active!=='undefined')out[key].active=!!b[key].active;}return out;}
+    document.getElementById('sbLoad').addEventListener('click', async ()=>{
+      try {
+        const user = await sbRequireUser();
+        const { data, error } = await sb.from('tracker_data').select('data').eq('user_id', user.id).single();
+        if (error && error.code !== 'PGRST116') { showToast(`Load failed: ${error.message}`); return; }
+        const remote = data?.data || {};
+        const merged = mergeData(load(), remote);
+        save(merged); renderBody(); showToast('Loaded & merged from cloud.');
+        document.getElementById('sbStatus').textContent = `Last load: ${new Date().toLocaleString()}`;
+      } catch {}
+    });
 
-    function init(){renderHead();renderBody();refreshSbAuthUI();}
+    document.getElementById('sbSignOut').addEventListener('click', async ()=>{
+      await sb.auth.signOut(); await refreshSbAuthUI(); showToast('Signed out.');
+    });
+
+    sb.auth.onAuthStateChange((_evt, _session)=>{ refreshSbAuthUI(); });
+
+    // ====== Merge helper ======
+    function mergeData(a={}, b={}) {
+      const out = JSON.parse(JSON.stringify(a || {}));
+      for (const key of Object.keys(b || {})) {
+        if (!out[key]) out[key] = { daily:{}, active: (b[key].active!==false) };
+        const bd = (b[key] && b[key].daily) || {};
+        for (const d of Object.keys(bd)) {
+          const r = bd[d] || {clicked:false,farmed:false};
+          const l = (out[key].daily && out[key].daily[d]) || {clicked:false,farmed:false};
+          out[key].daily[d] = { clicked: !!(l.clicked || r.clicked), farmed: !!(l.farmed || r.farmed) };
+        }
+        if (typeof b[key].active !== 'undefined') out[key].active = !!b[key].active;
+      }
+      return out;
+    }
+
+    // Helpers
+    function toDateOnly(x){ const d=new Date(x); return new Date(d.getFullYear(),d.getMonth(),d.getDate()); }
+    function dayDiff(a,b){ return Math.floor((toDateOnly(b)-toDateOnly(a))/86400000); }
+
+    // ====== Init ======
+    function init(){ renderBody(); refreshSbAuthUI(); }
     init();
   </script>
 </body>
