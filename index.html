@@ -11,12 +11,12 @@
       --bg:#0b0d10; --panel:#0f1115; --panel-2:#111827; --text:#e5e7eb;
       --muted:#9ca3af; --border:#1f2937; --link:#93c5fd; --link-hover:#bfdbfe;
 
-      /* Classic tier-list swatches (close to your screenshot) */
-      --tier-S:#ff7f7f;   /* soft red/pink */
-      --tier-A:#ffbf80;   /* peach/orange */
-      --tier-B:#ffe680;   /* pale yellow */
-      --tier-C:#8fff8f;   /* light green */
-      --tier-D:#8ec5ff;   /* light blue */
+      /* Classic tier-list swatches (from your mock) */
+      --tier-S:#ff7f7f;  /* soft red/pink */
+      --tier-A:#ffbf80;  /* peach/orange */
+      --tier-B:#ffe680;  /* light yellow */
+      --tier-C:#8fff8f;  /* light green */
+      --tier-D:#8ec5ff;  /* light blue */
     }
     html,body{height:100%} body{background:var(--bg);color:var(--text)}
     a{color:var(--link)} a:hover{color:var(--link-hover)}
@@ -79,21 +79,22 @@
     tr[data-hidden="1"]{display:none;}
 
     /* Tier column */
-    .tier-col{width:64px; text-align:center; font-weight:700; color:#111; border-right:2px solid #000;}
+    .tier-col{width:64px; text-align:center; font-weight:800; border-right:2px solid #000;}
     .tier-cell{display:flex; align-items:center; justify-content:center; height:100%; min-height:38px; font-size:1rem; letter-spacing:.5px;}
-    /* Force the backgrounds by tier (important to win over Bootstrap) */
-    td.tier-S{background:var(--tier-S)!important;}
-    td.tier-A{background:var(--tier-A)!important;}
-    td.tier-B{background:var(--tier-B)!important;}
-    td.tier-C{background:var(--tier-C)!important;}
-    td.tier-D{background:var(--tier-D)!important;}
+
+    /* Force tier backgrounds + black text (win over Bootstrap stripes) */
+    .table td.tier-S{background:var(--tier-S)!important; color:#111!important;}
+    .table td.tier-A{background:var(--tier-A)!important; color:#111!important;}
+    .table td.tier-B{background:var(--tier-B)!important; color:#111!important;}
+    .table td.tier-C{background:var(--tier-C)!important; color:#111!important;}
+    .table td.tier-D{background:var(--tier-D)!important; color:#111!important;}
 
     /* Per-category subheader */
-    .subhead-row th{background:var(--panel-2); border-color:var(--border); position:sticky; top:0; z-index:1;}
+    .subhead-row th{background:var(--panel-2); border-color:var(--border);}
 
-    /* Tier mini-legend cell */
-    .tier-legend{white-space:pre-line; font-size:.85rem; line-height:1.05; text-align:left; padding:.5rem .55rem; color:#111}
-    .tier-legend b{display:inline-block; width:1.2rem; text-align:center; margin-right:.35rem; border:1px solid rgba(0,0,0,.2); border-radius:.25rem; background:rgba(0,0,0,.08)}
+    /* Tier mini-legend cell (first row below header) */
+    .tier-legend{white-space:pre-line; font-size:.85rem; line-height:1.05; text-align:left; padding:.4rem .55rem; color:#cbd5e1}
+    .tier-legend b{display:inline-block; width:1.2rem; text-align:center; margin-right:.35rem; border:1px solid rgba(255,255,255,.15); border-radius:.25rem; color:#111; background:rgba(255,255,255,.85)}
   </style>
 </head>
 <body>
@@ -240,12 +241,11 @@
     let IS_AUTH = false;
     let REGISTERED_AT = null;
 
-    /* ===== Projects (tiers are project quality, not routine %) ===== */
+    /* ===== Projects (tiers are project quality) ===== */
     const TIER_ORDER = ['S','A','B','C','D'];
 
     const PROJECTS = [
-      /* -------- DeFi (new) -------- */
-      // Ranked using your article (small-protocol alpha on Hyperliquid + others)
+      /* -------- DeFi -------- */
       { cat:'DeFi', tier:'S', key:'axiom',   name:'Axiom Trade', url:'https://axiom.trade/@petranto',
         desc:'Perps & liquidity hub (Solana). Undercrowded pools with real fees.',
         routine:['Open account & fund','Swap/LP on stable pairs','Try auto-vault / loop','Do some volume for points']},
@@ -272,12 +272,12 @@
         routine:['Register WL','Complete basic tasks','Trade small size if open']},
 
       /* -------- SocialFi / InfoFi -------- */
-      { cat:'SocialFi/InfoFi', tier:'A', key:'xeet', name:'Xeet', url:'https://www.xeet.ai/refer/PetrAnto12',
-        desc:'SocialFi focus on Quality content (Signal > Noise)',
-        routine:['Create Quality content','Refer Quality users','Check profile','Play tournaments']},
       { cat:'SocialFi/InfoFi', tier:'S', key:'kaito', name:'Kaito (Yaps)', url:'https://yaps.kaito.ai/referral/1382662710396080133',
         desc:'Mindshare & data market/launchpad.',
         routine:['Engage Top/Emerging feed','Check Earn campaign','Stake $Kaito','Post > once/day']},
+      { cat:'SocialFi/InfoFi', tier:'A', key:'xeet', name:'Xeet', url:'https://www.xeet.ai/refer/PetrAnto12',
+        desc:'SocialFi focus on Quality content (Signal > Noise)',
+        routine:['Create Quality content','Refer Quality users','Check profile','Play tournaments']},
       { cat:'SocialFi/InfoFi', tier:'A', key:'klout', name:'Klout.gg', url:'https://klout.gg/', desc:'Attention Market',
         referralNote:'Referral: “petranto 🧬”', copyText:'petranto 🧬',
         routine:['Open/close 1 position','Post quality content','Shout referral once','Chaser: play & win']},
@@ -290,15 +290,15 @@
       { cat:'SocialFi/InfoFi', tier:'B', key:'bantr', name:'Bantr', url:'https://beta.bantr.fun?ic=1UB6N36',
         desc:'SocialFi + Product usage.',
         routine:['Refer users','Post on Campaign Projects','Engage leaderboard']},
+      { cat:'SocialFi/InfoFi', tier:'C', key:'fundamental', name:'Fundamental.lol', url:'https://fundamental.lol/r/?node=PetrAnto12-5mu',
+        desc:'Onchain social hub.',
+        routine:['Daily visit & check-in','Mint passport','Invite quality people','Add HL-eco wallets','Give Kudos','Get Kudos','Find code']},
       { cat:'SocialFi/InfoFi', tier:'C', key:'mindoshare', name:'Mindoshare.ai', url:'https://mindoshare.ai/kol?ref=cmev63nqn01mllr3wtpn2whcm',
         desc:'Create content to complete tasks.',
         routine:['Create to complete tasks','Refer users','Finish X tasks']},
       { cat:'SocialFi/InfoFi', tier:'C', key:'wallchain', name:'Wallchain (Quacks)', url:'https://quacks.app/?ref=PetrAnto12',
         desc:'Post on selected projects.',
         routine:['Post quality threads','Link reward wallets','Refer users','Claim Quacks']},
-      { cat:'SocialFi/InfoFi', tier:'B', key:'fundamental', name:'Fundamental.lol', url:'https://fundamental.lol/r/?node=PetrAnto12-5mu',
-        desc:'Onchain social hub.',
-        routine:['Daily visit & check-in','Mint passport','Invite quality people','Add HL-eco wallets','Give Kudos','Get Kudos','Find code']},
       { cat:'SocialFi/InfoFi', tier:'C', key:'kudoswap', name:'KudoSwap', url:'https://kudoswap.com/PetrAnto12',
         desc:'SocialFi & tokens.',
         routine:['Give Kudos','Get Kudos','Find community code']},
@@ -310,12 +310,12 @@
       { cat:'Web3 Quests', tier:'A', key:'consumerfi', name:'ConsumerFi', url:'https://www.consumerfi.ai/app?referral_code=PVZcXvqV',
         desc:'ConsumerFi quests.',
         routine:['Daily check-in/tasks','Refer users','Training tasks','Claim credits']},
-      { cat:'Web3 Quests', tier:'B', key:'astranovaBP', name:'Astranova BlackPass', url:'https://blackpass.astranova.world?referral_code=6ed940ede64b',
-        desc:'SocialFi quests.',
-        routine:['Daily Spin','Refer','Complete tasks','Update Black Pass NFT']},
       { cat:'Web3 Quests', tier:'A', key:'edgenAura', name:'Edgen Aura', url:'https://www.edgen.tech/aura/PetrAnto12',
         desc:'AI tools for markets.',
         routine:['Perform quest tasks & claim','Refer users','Use tools','Post tokens/stocks & mention Edgen','Register']},
+      { cat:'Web3 Quests', tier:'B', key:'astranovaBP', name:'Astranova BlackPass', url:'https://blackpass.astranova.world?referral_code=6ed940ede64b',
+        desc:'SocialFi quests.',
+        routine:['Daily Spin','Refer','Complete tasks','Update Black Pass NFT']},
       { cat:'Web3 Quests', tier:'C', key:'addicted', name:'Addicted.fun Invite code', url:'https://addicted.fun',
         desc:'On-chain Play-to-Earn.',
         routine:['Invite','Not much yet…']},
@@ -404,7 +404,7 @@
     /* ===== DOM helpers ===== */
     const headEl=document.getElementById('trackerHead');
     const bodyEl=document.getElementById('trackerBody');
-    headEl.innerHTML=''; // we render per-category headers instead
+    headEl.innerHTML=''; // per-category headers only
 
     const escapeHtml=(s='')=>s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
     const renderRoutine=(arr)=>{ if(!arr||!arr.length) return ''; const items=arr.slice(0,6).map(x=>`<li>${escapeHtml(x)}</li>`).join(''); return `<ul class="mb-0">${items}</ul>`; };
@@ -426,30 +426,23 @@
       const preHistoryCols = 1 + 3 + 1 + 2; // tier + (project,desc,routine) + score + today(2)
       let colIndex = preHistoryCols;
 
-      // days
       days.forEach(d=>{
         const ds=`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
         const s=getDayState(key,ds);
         setCellStatus(tr.cells[colIndex++], stateToColor(s));
       });
-
-      // weeks
       weeks.forEach(w=>{
         const st = windowStatsDays(key, w.start, w.end);
         const pct = st.totalDays ? Math.round(100*st.farmedDays/st.totalDays) : 0;
         const tip = `${st.farmedDays}/${st.totalDays} days farmed (${pct}%)`;
         setCellStatus(tr.cells[colIndex++], st.color, tip);
       });
-
-      // months
       months.forEach(m=>{
         const st = windowStatsDays(key, m.start, m.end);
         const pct = st.totalDays ? Math.round(100*st.farmedDays/st.totalDays) : 0;
         const tip = `${st.farmedDays}/${st.totalDays} days farmed (${pct}%)`;
         setCellStatus(tr.cells[colIndex++], st.color, tip);
       });
-
-      // quarters
       quarters.forEach(q=>{
         const st = windowStatsQuarterMonths(key, q.start, q.end);
         const pct = st.totalMonths ? Math.round(100*st.greenMonths/st.totalMonths) : 0;
@@ -473,16 +466,6 @@
         <small class="text-secondary">${score.pct}%</small>
         <div class="progress"><div class="progress-bar ${score.pct>=70?'bg-success':score.pct>=30?'bg-warning':'bg-danger'}" style="width:${score.pct}%"></div></div>
       `;
-    }
-
-    function tierLegendHTML(){
-      return (
-`S – Must-farm / top quality
-A – High priority
-B – Optional / watchlist
-C – Experimental / WL
-D – Long shots`
-      );
     }
 
     function renderBody(){
@@ -518,13 +501,12 @@ D – Long shots`
         bodyEl.appendChild(header);
         renderCategoryScore(cat);
 
-        /* Tier mini-legend row (first data line) */
+        /* Mini legend row */
         const leg = document.createElement('tr');
         leg.dataset.cat = cat; leg.dataset.hidden = collapsed ? "1" : "0";
         const tdL = document.createElement('td');
         tdL.className = 'tier-col tier-legend-cell';
-        // Neutral background (keep tier column for legend readable)
-        tdL.style.background = '#2a2f3a';
+        tdL.style.background = '#232833'; // neutral, not a tier
         tdL.innerHTML = `<div class="tier-legend">
 <b>S</b> Must-farm / top quality
 <b>A</b> High priority
@@ -538,7 +520,7 @@ D – Long shots`
         leg.appendChild(tdR);
         bodyEl.appendChild(leg);
 
-        /* Per-category column header row */
+        /* Column header row */
         const hdr = document.createElement('tr');
         hdr.className = 'subhead-row';
         hdr.dataset.cat = cat; hdr.dataset.hidden = collapsed ? "1" : "0";
@@ -557,7 +539,8 @@ D – Long shots`
         `;
         bodyEl.appendChild(hdr);
 
-        /* Group by tier, render with merged tier cell */
+        /* Group by tier and render with merged tier cell */
+        const TIER_ORDER = ['S','A','B','C','D'];
         TIER_ORDER.forEach(t=>{
           const items = all.filter(p=>p.tier===t);
           if (!items.length) return;
@@ -568,16 +551,20 @@ D – Long shots`
             const isActive = getActive(p.key);
             if (!isActive) tr.classList.add('inactive');
 
-            // merged tier cell only for the first row of the group
+            // tier merged cell
             if (idx===0){
               const tdTier = document.createElement('td');
               tdTier.className = `tier-col tier-${t}`;
               tdTier.rowSpan = items.length;
+              // strong inline fallback to 100% ensure color
+              const bgVar = t==='S'?'var(--tier-S)':t==='A'?'var(--tier-A)':t==='B'?'var(--tier-B)':t==='C'?'var(--tier-C)':'var(--tier-D)';
+              tdTier.style.background = bgVar;
+              tdTier.style.color = '#111';
               tdTier.innerHTML = `<div class="tier-cell">${t}</div>`;
               tr.appendChild(tdTier);
             }
 
-            // Project + track switch
+            // project cell + track switch
             const projectCell=document.createElement('td'); projectCell.className='project-cell';
             const trackWrap = document.createElement('span');
             trackWrap.className = 'form-check form-switch form-switch-sm d-inline-flex align-items-center me-2';
@@ -662,7 +649,6 @@ D – Long shots`
           });
         });
 
-        // Toggle behavior + persistence
         header.querySelector('.cat-toggle').addEventListener('click', ()=>{
           const st = getCatState();
           const willCollapse = !(st[cat] === true);
@@ -698,7 +684,6 @@ D – Long shots`
       const btn = document.getElementById('toggleAllBtn');
       btn.textContent = allExpanded ? 'Collapse all' : 'Expand all';
     }
-
     document.getElementById('toggleAllBtn').addEventListener('click', ()=>{
       const btn = document.getElementById('toggleAllBtn');
       const expand = btn.textContent.trim().toLowerCase().includes('expand');
@@ -709,7 +694,6 @@ D – Long shots`
       setCatState(st);
       renderBody();
     });
-
     document.getElementById('resetTodayBtn').addEventListener('click',()=>{
       const data=load(); const t=today();
       PROJECTS.forEach(p=>{ if(data[p.key]?.daily?.[t]) data[p.key].daily[t]={clicked:false,farmed:false};});
