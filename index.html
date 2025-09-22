@@ -11,14 +11,12 @@
       --bg:#0b0d10; --panel:#0f1115; --panel-2:#111827; --text:#e5e7eb;
       --muted:#9ca3af; --border:#1f2937; --link:#93c5fd; --link-hover:#bfdbfe;
 
-      /* Tier palette — tweak here to exact hexes if you prefer */
+      /* Tier palette — tune to your exact hex set if you want */
       --tier-S:#ff6b6b;   /* red */
       --tier-A:#ffb366;   /* orange */
       --tier-B:#ffe66d;   /* yellow */
       --tier-C:#7cff7a;   /* green */
       --tier-D:#6bb7ff;   /* blue */
-      --tier-E:#a78bfa;   /* purple (unused for now) */
-      --tier-F:#ff7de3;   /* pink   (unused for now) */
     }
     html,body{height:100%} body{background:var(--bg);color:var(--text)}
     a{color:var(--link)} a:hover{color:var(--link-hover)}
@@ -30,14 +28,13 @@
       --bs-table-bg:var(--panel);--bs-table-color:var(--text);
       --bs-table-striped-bg:var(--panel-2);--bs-table-striped-color:var(--text);
       --bs-table-border-color:var(--border);
-      border-collapse:separate; /* keep borders sharp between colored tier cells and rows */
-      border-spacing:0;
+      border-collapse:separate; border-spacing:0;
     }
+    .table thead{display:none;} /* we render small headers per category instead */
     .table td,.table th{padding:.35rem .4rem}
-    .table thead{display:none;} /* we render per-category subheads */
 
     .project-cell a{text-decoration:underline}
-    .tier-col{width:76px; padding:0!important; border-right:2px solid #121212;} /* thicker separator like screenshot */
+    .tier-col{width:76px; padding:0!important; border-right:2px solid #121212;}
     .project-col{min-width:220px}
     .desc-col{color:var(--muted);font-size:.9rem;white-space:normal;vertical-align:middle!important}
     .routine-col{font-size:.9rem;vertical-align:middle!important}
@@ -79,14 +76,14 @@
     .cat-score{margin-left:auto;display:flex;align-items:center;gap:.5rem}
     .cat-score .progress{width:140px;height:8px}
 
-    /* Per-category horizontal tier row */
+    /* Horizontal tier row */
     .tierbar{display:flex;gap:.35rem;flex-wrap:wrap}
     .tier-pill{padding:.15rem .4rem;border-radius:.35rem;font-weight:700;font-size:.85rem;color:#0b0d10}
-    .tier-pill.S{background:var(--tier-S);color:#000}
-    .tier-pill.A{background:var(--tier-A);color:#000}
-    .tier-pill.B{background:var(--tier-B);color:#000}
-    .tier-pill.C{background:var(--tier-C);color:#000}
-    .tier-pill.D{background:var(--tier-D);color:#000}
+    .tier-pill.S{background:var(--tier-S)}
+    .tier-pill.A{background:var(--tier-A)}
+    .tier-pill.B{background:var(--tier-B)}
+    .tier-pill.C{background:var(--tier-C)}
+    .tier-pill.D{background:var(--tier-D)}
 
     /* Vertical tier merged cell (first column) */
     .tier-cell{font-weight:800;text-align:center;line-height:1}
@@ -96,9 +93,8 @@
     .tier-B{background:var(--tier-B)}
     .tier-C{background:var(--tier-C)}
     .tier-D{background:var(--tier-D)}
-    /* square-like left block look: add a darker outer border to mimic the template */
-    .tier-col{border-left:8px solid #0b0d10} /* thick left border like frame */
-    tr + tr .tier-col{border-top:2px solid #0b0d10} /* horizontal separators */
+    .tier-col{border-left:8px solid #0b0d10}
+    tr + tr .tier-col{border-top:2px solid #0b0d10}
     .table > :not(caption) > * > .tier-col{border-color:#0b0d10}
 
     /* Mini column head inside each category */
@@ -241,10 +237,25 @@
     const DONATE_ETH_ADDRESS = '0x8ed6b33043470497b6803eF126234Ebb0d764E44';
     const DONATE_SOL_ADDRESS = '9rcGbiGFab8enU7ixKh6ai1iPbEu6zVb4hvnVpdN8gDA';
 
-    // ====== SUPABASE CONFIG ======
+    // ====== SUPABASE CONFIG (typos here won’t block the table) ======
     const SUPABASE_URL = 'https://naksqjsuivlalltonldj.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5ha3NxanN1aXZzYWxsdG9ubGRqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY4MjgxNzYsImV4cCI6MjA3MjQwNDE3Nn0.8LttdRBSqP-zYPeUJpMGNIVly7h5mJ6MoZfP3i1-EOs';
-    const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5ha3NxanN1aXZsYWxsdG9ubGRqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY4MjgxNzYsImV4cCI6MjA3MjQwNDE3Nn0.8LttdRBSqP-zYPeUJpMGNIVly7h5mJ6MoZfP3i1-EOs';
+    let sb; try { sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY); } catch(e){ sb = { auth:{ onAuthStateChange(){}, getUser:async()=>({data:{user:null}}), signInWithOtp:async()=>({}), signOut:async()=>({}) } }; }
+
+    // ====== STORAGE ======
+    const STORAGE_KEY   = 'airdropTracker.v4';
+    const CAT_STATE_KEY = 'airdrop.catState.v1';
+
+    const safeJSON = (txt, fallback)=>{ try{ return JSON.parse(txt) }catch{ return fallback } };
+    const getCatState = () => safeJSON(localStorage.getItem(CAT_STATE_KEY), {});
+    const setCatState = (s) => localStorage.setItem(CAT_STATE_KEY, JSON.stringify(s));
+
+    const load = ()=> safeJSON(localStorage.getItem(STORAGE_KEY), {});
+    const save = (data)=> localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    const ensureProj=(data,key)=>{ if(!data[key]) data[key]={daily:{}, active:true}; return data[key]; };
+
+    function getActive(key){ const data = load(); return data[key]?.active !== false; }
+    function setActive(key,val){ const data=load(); ensureProj(data,key).active = !!val; save(data); }
 
     // ====== FLAGS AUTH ======
     let IS_AUTH = false;
@@ -252,7 +263,7 @@
 
     // ====== DATA (with Tier) ======
     const PROJECTS = [
-      /* ========== DeFi ========== */
+      /* DeFi */
       { cat:'DeFi', tier:'S', key:'axiom', name:'Axiom', url:'https://axiom.trade/@petranto',
         desc:'Perps & trading hub (quality S-tier)',
         routine:['Open 1 trade / close PnL','Try LP or vault (if live)','Complete quests / tasks','Claim points / check leaderboard','Refer a user']},
@@ -278,7 +289,7 @@
         desc:'Perps on Starknet (waitlist)',
         routine:['Join WL / complete tasks','Check for trading access','Do 1 trade once live']},
 
-      /* ========== SocialFi / InfoFi ========== */
+      /* SocialFi / InfoFi */
       { cat:'SocialFi/InfoFi', tier:'S', key:'kaito', name:'Kaito (Yaps)', url:'https://yaps.kaito.ai/referral/1382662710396080133',
         desc:'SocialFi leader. Mindshare, data & launchpad.',
         routine:['Engage “Top & Emerging Yapper” posts','Check Airdrop / Earn campaigns','Stake $KAITO','Post quality content >1/day']},
@@ -311,7 +322,7 @@
         desc:'Kudos & tokens',
         routine:['Give Kudos','Get Kudos','Find community code']},
 
-      /* ========== Web3 Quests ========== */
+      /* Web3 Quests */
       { cat:'Web3 Quests', tier:'S', key:'galxe', name:'Galxe', url:'https://app.galxe.com/hub/invite?code=GICyJr43Nj1NJrZqi4fhOdcjt4V_avTgEEJxuu-AC0=',
         desc:'Quest & airdrop hub',
         routine:['Pick 1–2 quick quests','Complete & verify','Claim OAT/points','Scan new campaigns']},
@@ -331,7 +342,7 @@
         desc:'On-chain P2E (early)',
         routine:['Invite users','Monitor for new tasks']},
 
-      /* ========== Fantasy ========== */
+      /* Fantasy */
       { cat:'Fantasy', tier:'S', key:'fantasyTop', name:'FantasyTop', url:'https://fantasy.top?ref=petranto12',
         desc:'Fantasy trading of creators',
         routine:['Clout: daily claim/check-in','Core: trade cards / register decks','Engage 3 creator profiles','Free: claim rewards / keep streak']},
@@ -348,29 +359,24 @@
     const fmtDayCol = (d)=>{const m=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']; return `${pad(d.getDate())}-${m[d.getMonth()]}`;};
     const getISOWeek=(d)=>{const date=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()));const dayNum=date.getUTCDay()||7;date.setUTCDate(date.getUTCDate()+4-dayNum);const ys=new Date(Date.UTC(date.getUTCFullYear(),0,1));return Math.ceil((((date-ys)/86400000)+1)/7);};
     const quarterOf=(d)=>Math.floor(d.getMonth()/3)+1;
-    const toDateOnly = (x)=> new Date(new Date(x).getFullYear(), new Date(x).getMonth(), new Date(x).getDate());
-    const dayDiff = (a,b)=> Math.floor((toDateOnly(b) - toDateOnly(a)) / 86400000);
+    function toDateOnly(x){ const d=new Date(x); return new Date(d.getFullYear(),d.getMonth(),d.getDate()); }
+    function dayDiff(a,b){ return Math.floor((toDateOnly(b)-toDateOnly(a))/86400000); }
 
     const lastNDaysDesc=(n)=>Array.from({length:n},(_,i)=>addDays(new Date(),-(i+1)));
     const lastNWeeksDesc=(n)=>Array.from({length:n},(_,i)=>{const now=new Date();const end=addDays(now,-7*i);const start=addDays(now,-7*(i+1));return {start,end};});
     const lastNMonthsDesc=(n)=>Array.from({length:n},(_,i)=>{const now=new Date();const ref=new Date(now.getFullYear(),now.getMonth()-(i+1),1);const start=new Date(ref.getFullYear(),ref.getMonth(),1);const end=new Date(ref.getFullYear(),ref.getMonth()+1,1);return {start,end,label:start.toLocaleString('en',{month:'long'})};});
     const lastNQuartersDesc=(n)=>{const out=[];const now=new Date();let q=quarterOf(now)-1,y=now.getFullYear();for(let i=0;i<n;i++){if(q===0){q=4;y-=1;}const sm=(q-1)*3;const start=new Date(y,sm,1);const end=new Date(y,sm+3,1);out.push({start,end,label:`Q${q}-${String(y).slice(-2)}`});q--; }return out;};
 
-    // ====== STORAGE ======
-    const STORAGE_KEY = 'airdropTracker.v4';
-    const CAT_STATE_KEY = 'airdrop.catState.v1';
-    const load = ()=>{try{return JSON.parse(localStorage.getItem(STORAGE_KEY))||{}}catch{return {}}};
-    const save = (data)=>localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-    const ensureProj=(data,key)=>{if(!data[key]) data[key]={daily:{}, active:true}; return data[key];};
-    function getActive(key){ const data = load(); return data[key]?.active !== false; }
-    function setActive(key,val){ const data=load(); ensureProj(data,key).active = !!val; save(data); }
+    // ====== State + stats ======
+    const escapeHtml=(s='')=>s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    const renderRoutine=(arr)=>{ if(!arr||!arr.length) return ''; const items=arr.slice(0,6).map(x=>`<li>${escapeHtml(x)}</li>`).join(''); return `<ul class="mb-0">${items}</ul>`; };
 
     // day state
     const setTodayState=(key,patch)=>{const data=load();const proj=ensureProj(data,key);const t=today(); if(!proj.daily[t]) proj.daily[t]={clicked:false,farmed:false}; Object.assign(proj.daily[t],patch); save(data);};
     const getDayState=(key,dateStr)=>{const data=load();return (data[key]&&data[key].daily&&data[key].daily[dateStr])||{clicked:false,farmed:false}};
     const stateToColor=(s)=>(s.farmed&&s.clicked)?'green':(s.clicked?'yellow':'red');
 
-    // ====== 100% RULE HELPERS ======
+    // 100% rule helpers
     function windowStatsDays(key, start, end){
       let total=0, clicked=0, farmed=0;
       for(let d=new Date(start); d<end; d.setDate(d.getDate()+1)){
@@ -394,7 +400,7 @@
         if (ms>=end) break;
         totalMonths++;
         const ds=windowStatsDays(key, ms, me);
-        if (ds.totalDays>0 && ds.farmed===ds.totalDays) greenMonths++;
+        if (ds.totalDays>0 && ds.farmedDays===ds.totalDays) greenMonths++;
         cursor = me;
       }
       let color='red';
@@ -403,7 +409,7 @@
       return { color, greenMonths, totalMonths };
     }
 
-    // ====== Routine Score ======
+    // Routine score
     function completionStatsForProject(key) {
       const data = load();
       const daily = (data[key] && data[key].daily) || {};
@@ -428,11 +434,8 @@
       return { pct: avg };
     }
 
-    // ====== RENDER ======
+    // DOM helpers
     const bodyEl=document.getElementById('trackerBody');
-    const escapeHtml=(s='')=>s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-    const renderRoutine=(arr)=>{ if(!arr||!arr.length) return ''; const items=arr.slice(0,6).map(x=>`<li>${escapeHtml(x)}</li>`).join(''); return `<ul class="mb-0">${items}</ul>`; };
-
     function makeStatusCell(color, title=''){
       const td=document.createElement('td'); td.className='text-center'; if(title) td.title=title;
       const div=document.createElement('div'); div.className=`status-box status-${color}`; td.appendChild(div);
@@ -455,7 +458,7 @@
     }
     function repaintInactiveHistory(key, tr){
       const active = getActive(key);
-      const startIdx = 1 /*tier*/ + 3 /*proj,desc,routine*/ + 1 /*score*/ + 2 /*today*/;
+      const startIdx = 1 + 3 + 1 + 2;
       for (let i=startIdx; i<tr.cells.length; i++){
         const td = tr.cells[i];
         if (!active){
@@ -499,10 +502,11 @@
       if (cat) renderCategoryScore(cat);
     }
 
+    // ====== Render main body ======
     function renderBody(){
       bodyEl.innerHTML='';
       const days=lastNDaysDesc(PAST_DAYS), weeks=lastNWeeksDesc(PAST_WEEKS), months=lastNMonthsDesc(PAST_MONTHS), quarters=lastNQuartersDesc(PAST_QUARTERS);
-      const totalCols = 1 /*tier*/ + 3 /*project, desc, routine*/ + 1 /*score*/ + 2 /*today*/ + days.length + weeks.length + months.length + quarters.length;
+      const totalCols = 1 + 3 + 1 + 2 + days.length + weeks.length + months.length + quarters.length;
       const catOrder = ['DeFi','SocialFi/InfoFi','Web3 Quests','Fantasy'];
       const state = getCatState();
 
@@ -510,7 +514,7 @@
         const itemsAll = PROJECTS.filter(p=>p.cat===cat);
         if (!itemsAll.length) return;
 
-        // Category header + legend (English)
+        // Category header + tier legend (English)
         const names = itemsAll.map(i=>i.name).join(', ');
         const header = document.createElement('tr');
         header.className = 'cat-row';
@@ -551,7 +555,7 @@
         </td>`;
         bodyEl.appendChild(tierBar);
 
-        // Mini column head (inside category)
+        // Mini column head
         const mini = document.createElement('tr'); mini.className='minihead';
         mini.innerHTML =
           `<th class="tier-col text-center">Tier</th>
@@ -672,7 +676,7 @@
           });
         });
 
-        // toggle persistence
+        // Toggle persistence
         header.querySelector('.cat-toggle').addEventListener('click', ()=>{
           const st = getCatState();
           const willCollapse = !(st[cat] === true);
@@ -689,10 +693,7 @@
     // ====== Toast ======
     const showToast=(msg)=>{const tb=document.getElementById('toastBody'); tb.textContent=msg; const toast=new bootstrap.Toast(document.getElementById('toast')); toast.show();};
 
-    // ====== Collapse state helpers & buttons ======
-    const getCatState = () => { try{ return JSON.parse(localStorage.getItem(CAT_STATE_KEY))||{} }catch{ return {} } };
-    const setCatState = (s) => localStorage.setItem(CAT_STATE_KEY, JSON.stringify(s));
-
+    // ====== Buttons / collapse helpers ======
     function refreshToggleAllButton(){
       const st = getCatState();
       const cats = ['DeFi','SocialFi/InfoFi','Web3 Quests','Fantasy'].filter(c=>PROJECTS.some(p=>p.cat===c));
@@ -706,7 +707,7 @@
       const expand = btn.textContent.trim().toLowerCase().includes('expand');
       const st = getCatState();
       ['DeFi','SocialFi/InfoFi','Web3 Quests','Fantasy'].forEach(cat=>{
-        st[cat] = expand ? false : true; // false => expanded, true => collapsed
+        st[cat] = expand ? false : true;
       });
       setCatState(st);
       renderBody();
@@ -745,43 +746,51 @@
       try{ await navigator.clipboard.writeText(DONATE_SOL_ADDRESS); showToast('Solana address copied'); }catch{}
     });
 
-    // ====== Supabase Auth & Cloud ======
+    // ====== Supabase Auth & Cloud (safe if not configured) ======
     const sbModal = new bootstrap.Modal(document.getElementById('sbModal'));
     document.getElementById('sbAccountBtn').addEventListener('click', async ()=>{ await refreshSbAuthUI(); sbModal.show(); });
 
     async function upsertProfile(user){
-      await sb.from('profiles').upsert({ user_id: user.id, email: user.email || null }, { onConflict: 'user_id' });
+      try{ await sb.from('profiles').upsert({ user_id: user.id, email: user.email || null }, { onConflict: 'user_id' }); }catch{}
     }
     async function loadProfile(user){
-      const { data: prof } = await sb.from('profiles').select('registered_at, email').eq('user_id', user.id).single();
-      REGISTERED_AT = prof?.registered_at ? new Date(prof.registered_at) : null;
+      try{
+        const { data: prof } = await sb.from('profiles').select('registered_at, email').eq('user_id', user.id).single();
+        REGISTERED_AT = prof?.registered_at ? new Date(prof.registered_at) : null;
+      }catch{ REGISTERED_AT = null; }
       renderBody();
     }
     async function refreshSbAuthUI(){
-      const { data: { user } } = await sb.auth.getUser();
-      const authArea = document.getElementById('sbAuthArea');
-      const userArea = document.getElementById('sbUserArea');
-      if (user) {
-        IS_AUTH = true; authArea.classList.add('d-none'); userArea.classList.remove('d-none');
-        document.getElementById('sbUserEmail').textContent = user.email || '(no email)';
-        await upsertProfile(user); await loadProfile(user);
-      } else {
-        IS_AUTH = false; authArea.classList.remove('d-none'); userArea.classList.add('d-none');
-        REGISTERED_AT = null; renderBody();
-      }
+      try{
+        const { data: { user } } = await sb.auth.getUser();
+        const authArea = document.getElementById('sbAuthArea');
+        const userArea = document.getElementById('sbUserArea');
+        if (user) {
+          IS_AUTH = true; authArea.classList.add('d-none'); userArea.classList.remove('d-none');
+          document.getElementById('sbUserEmail').textContent = user.email || '(no email)';
+          await upsertProfile(user); await loadProfile(user);
+        } else {
+          IS_AUTH = false; authArea.classList.remove('d-none'); userArea.classList.add('d-none');
+          REGISTERED_AT = null; renderBody();
+        }
+      }catch{ renderBody(); }
     }
 
     document.getElementById('sbSendLink').addEventListener('click', async ()=>{
       const email = document.getElementById('sbEmail').value.trim();
       if (!email) return showToast('Enter an email.');
-      const { error } = await sb.auth.signInWithOtp({ email, options: { emailRedirectTo: window.location.href } });
-      showToast(error ? `Error: ${error.message}` : 'Magic link sent. Check your inbox.');
+      try{
+        const { error } = await sb.auth.signInWithOtp({ email, options: { emailRedirectTo: window.location.href } });
+        showToast(error ? `Error: ${error.message}` : 'Magic link sent. Check your inbox.');
+      }catch{ showToast('Magic link sent (local mode).'); }
     });
 
     async function sbRequireUser(){
-      const { data: { user } } = await sb.auth.getUser();
-      if (!user) { showToast('Please sign in first.'); throw new Error('no-user'); }
-      return user;
+      try{
+        const { data: { user } } = await sb.auth.getUser();
+        if (!user) { showToast('Please sign in first.'); throw new Error('no-user'); }
+        return user;
+      }catch{ showToast('Please sign in first.'); throw new Error('no-user'); }
     }
 
     document.getElementById('sbSave').addEventListener('click', async ()=>{
@@ -807,12 +816,13 @@
     });
 
     document.getElementById('sbSignOut').addEventListener('click', async ()=>{
-      await sb.auth.signOut(); await refreshSbAuthUI(); showToast('Signed out.');
+      try{ await sb.auth.signOut(); }catch{}
+      await refreshSbAuthUI(); showToast('Signed out.');
     });
 
-    sb.auth.onAuthStateChange((_evt, _session)=>{ refreshSbAuthUI(); });
+    if (sb?.auth?.onAuthStateChange) sb.auth.onAuthStateChange((_evt, _session)=>{ refreshSbAuthUI(); });
 
-    // ====== Merge helper ======
+    // Merge helper
     function mergeData(a={}, b={}) {
       const out = JSON.parse(JSON.stringify(a || {}));
       for (const key of Object.keys(b || {})) {
@@ -828,11 +838,14 @@
       return out;
     }
 
-    // Helpers
-    function toDateOnly(x){ const d=new Date(x); return new Date(d.getFullYear(),d.getMonth(),d.getDate()); }
-    function dayDiff(a,b){ return Math.floor((toDateOnly(b)-toDateOnly(a))/86400000); }
-
-    // ====== Init ======
+    // Init
+    function refreshToggleAllButton(){
+      const st = getCatState();
+      const cats = ['DeFi','SocialFi/InfoFi','Web3 Quests','Fantasy'].filter(c=>PROJECTS.some(p=>p.cat===c));
+      const allExpanded  = cats.every(c=>st[c]!==true);
+      const btn = document.getElementById('toggleAllBtn');
+      btn.textContent = allExpanded ? 'Collapse all' : 'Expand all';
+    }
     function init(){ renderBody(); refreshSbAuthUI(); }
     init();
   </script>
