@@ -2,104 +2,108 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>Airdrop Farming Tracker</title>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='28' fill='%23fff'/%3E%3Ctext x='32' y='39' font-size='28' text-anchor='middle' fill='%23000'%3E✓%3C/text%3E%3C/svg%3E">
 <style>
   :root{
     --bg:#0b0d10; --panel:#0f1115; --panel-2:#111827; --text:#e5e7eb;
     --muted:#9ca3af; --border:#1f2937; --link:#93c5fd; --link-hover:#bfdbfe;
-    /* Tier colours (close to the image you sent) */
-    --tierS:#ff7a7a; --tierA:#ffba7a; --tierB:#ffe676; --tierC:#8dfb7a; --tierD:#7ab8ff;
+    /* Tier colors (match your reference) */
+    --tier-s:#ff7f7f; --tier-a:#ffb47f; --tier-b:#ffe37f; --tier-c:#a6ff7f; --tier-d:#7fb7ff;
   }
   html,body{height:100%} body{background:var(--bg);color:var(--text)}
   a{color:var(--link)} a:hover{color:var(--link-hover)}
   .sticky-top-bg{background:var(--panel);box-shadow:0 2px 16px rgba(0,0,0,.6);border:1px solid var(--border)}
   .subhead{color:var(--muted)}
-  .table{--bs-table-bg:var(--panel);--bs-table-color:var(--text);--bs-table-striped-bg:var(--panel-2);--bs-table-border-color:var(--border)}
-  .table td,.table th{padding:.35rem .45rem}
-  .table-responsive{overflow-x:auto}
 
-  /* Small traffic-light boxes (history cells) */
+  .table{
+    --bs-table-bg:var(--panel);
+    --bs-table-color:var(--text);
+    --bs-table-striped-bg:var(--panel-2);
+    --bs-table-striped-color:var(--text);
+    --bs-table-border-color:var(--border);
+  }
+  .table td,.table th{padding:.40rem .45rem}
+  .project-col{min-width:220px}
+  .desc-col{color:var(--muted);font-size:.92rem;white-space:normal;vertical-align:middle!important}
+  .routine-col{font-size:.92rem;vertical-align:middle!important}
+  .routine-col ul{margin:0 0 0 1.1rem}
+  .routine-col li{margin-bottom:.14rem}
+  .score-col{min-width:200px;vertical-align:middle!important}
+  .today-col{width:56px;text-align:center}
+  .history-col{width:32px;text-align:center}
   .status-box{width:18px;height:18px;border-radius:3px;border:1px solid rgba(255,255,255,.06);display:inline-block}
   .status-green{background:#21c35e} .status-yellow{background:#f1c40f} .status-red{background:#e74c3c}
-  .status-grey{background:#6b7280}
 
+  .note-badge{font-size:.70rem}
+  .form-check-input[readonly]{pointer-events:none}
   .controls .btn{margin-right:.5rem}
-  .project-col{min-width:220px}
-  .desc-col{color:var(--muted);font-size:.92rem}
-  .routine-col{font-size:.92rem}
-  .routine-col ul{margin:0 0 0 1.2rem}
-  .routine-col li{margin-bottom:.12rem}
-  .score-col{min-width:200px}
 
   /* Category header row */
   .cat-row{background:var(--panel-2)!important;user-select:none}
-  .cat-row td{padding:.55rem .6rem}
+  .cat-row td{padding:.5rem .6rem}
   .cat-title{display:flex;align-items:center;gap:.6rem;flex-wrap:wrap}
   .cat-toggle{cursor:pointer;display:inline-block;width:1rem;text-align:center}
   .cat-badge{font-size:.75rem}
-  .cat-desc{color:var(--muted)}
-  .columns-head th{background:var(--panel-2);text-align:center;vertical-align:middle}
+  .cat-names{color:var(--muted)}
+  tr[data-cat]{display:table-row;}
+  tr[data-hidden="1"]{display:none;}
 
-  /* Tier intro/legend cell */
-  .tier-legend{
-    white-space:normal; font-size:.86rem; color:#d1d5db;
-  }
-  .tier-legend b{color:#111;background:#fff;padding:.1rem .35rem;border-radius:.35rem;margin-right:.35rem}
-  .tier-list{margin:.25rem 0 0 .2rem; padding-left:0; list-style:none}
-  .tier-list li{margin:.1rem 0}
+  /* Tier column (merged) */
+  td.tier-cell{padding:0!important; width:56px; min-width:56px; border-right:1px solid var(--border)}
+  .tier-block{height:100%;width:100%;display:flex;align-items:center;justify-content:center;
+              font-weight:800; font-size:1rem; color:#000;}   /* black letters for readability */
+  .tier-S{background:var(--tier-s)} .tier-A{background:var(--tier-a)}
+  .tier-B{background:var(--tier-b)} .tier-C{background:var(--tier-c)} .tier-D{background:var(--tier-d)}
 
-  /* Tier column (per project row) */
-  .tiercell{font-weight:700;text-align:center;width:64px;color:#111}
-  .tier-S{background:var(--tierS)} .tier-A{background:var(--tierA)}
-  .tier-B{background:var(--tierB)} .tier-C{background:var(--tierC)}
-  .tier-D{background:var(--tierD)}
+  /* Per-category legend row */
+  .legend-row td{background:#0e1218}
+  .tier-legend{display:grid;grid-template-columns:auto 1fr;gap:.15rem .5rem;font-size:.86rem}
+  .legend-badge{display:inline-block;min-width:18px;height:18px;border-radius:3px;border:1px solid rgba(255,255,255,.06)}
+  .legend-s{background:var(--tier-s)} .legend-a{background:var(--tier-a)} .legend-b{background:var(--tier-b)}
+  .legend-c{background:var(--tier-c)} .legend-d{background:var(--tier-d)}
+  .legend-names small{color:var(--muted)}
+  .ranked-names{font-size:.9rem}
+  .ranked-names b{color:#e9ecef}
+  .ranked-names span{color:var(--muted);margin-right:.35rem}
 
-  /* Inactive projects (not counted) */
-  tr.inactive{opacity:.55;filter:grayscale(.7)}
+  /* History compact band */
+  .status-box{vertical-align:middle}
+  /* Inactive projects */
+  tr.inactive{opacity:.55; filter:grayscale(.8)}
   td.inactive-cell .status-box{background:#6b7280!important}
 </style>
 </head>
 <body>
 <div class="container-fluid py-3">
 
-  <!-- Banner (kept) -->
-  <div class="text-center mb-2">
-    <img src="banner.png" style="max-width:940px;width:44vw;min-width:320px;border:1px solid var(--border);border-radius:12px" onerror="this.remove()">
-    <div class="small mt-1 text-secondary">Made with Love and Motivation by <a href="https://x.com/PetrAnto12" target="_blank" rel="noopener">@PetrAnto12</a></div>
-  </div>
-
   <div class="d-flex align-items-center justify-content-between mb-2 sticky-top sticky-top-bg px-2 py-2 rounded-3">
     <div>
       <h1 class="h5 mb-0">Airdrop Farming Tracker</h1>
-      <div class="subhead">Dark mode • Auto-tick on link click • Manual “Farm” • Local + Supabase sync • Routine Score • Tier Lists</div>
+      <div class="subhead">Dark mode • Auto-tick on link click • Manual “Farm” • Local storage • Routine Score • Tier Lists</div>
     </div>
     <div class="controls">
-      <button id="toggleAllBtn" class="btn btn-outline-light btn-sm">Expand all</button>
+      <button id="toggleAllBtn" class="btn btn-outline-light btn-sm">Collapse all</button>
       <button id="resetTodayBtn" class="btn btn-outline-secondary btn-sm">Reset today</button>
       <button id="resetAllBtn" class="btn btn-outline-danger btn-sm">Reset all</button>
       <button id="exportBtn" class="btn btn-outline-primary btn-sm">Export</button>
       <label class="btn btn-outline-primary btn-sm mb-0">Import <input id="importInput" type="file" accept="application/json" hidden></label>
-      <button id="sbAccountBtn" class="btn btn-success btn-sm">Account (Email)</button>
-      <button id="donateBtn" class="btn btn-warning btn-sm">Donate (Crypto)</button>
     </div>
   </div>
 
-  <!-- Farming legend -->
-  <div class="alert alert-dark border-secondary py-2 mb-2">
+  <!-- Legend -->
+  <div class="legend alert alert-dark border-secondary py-2 mb-2">
     <span class="me-3"><span class="status-box status-red me-1"></span> No click and no farm</span>
     <span class="me-3"><span class="status-box status-yellow me-1"></span> Click but no farm confirmed</span>
     <span class="me-3"><span class="status-box status-green me-1"></span> Click and farm OK</span>
-    <div class="small text-secondary mt-1">
+    <div class="small mt-1 text-secondary">
       “Click” auto-checks on link open; “Farm” is manual. Windows obey the 100% rule: green only if fully farmed, yellow if partial, red if none. Hover week/month/quarter cells for exact coverage.
     </div>
   </div>
 
   <div class="table-responsive">
-    <table class="table table-bordered table-striped align-middle">
-      <thead id="trackerHead"></thead>
+    <table id="trackerTable" class="table table-bordered table-striped align-middle">
       <tbody id="trackerBody"></tbody>
     </table>
   </div>
@@ -115,405 +119,355 @@
   </div>
 </div>
 
-<!-- Supabase modal (unchanged behaviour) -->
-<div class="modal fade" id="sbModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content bg-dark text-light border border-secondary">
-      <div class="modal-header">
-        <h5 class="modal-title">Cloud Sync (Email)</h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-      </div>
-      <div class="modal-body">
-        <div id="sbAuthArea">
-          <label class="form-label">Email for magic link</label>
-          <input id="sbEmail" type="email" class="form-control form-control-sm" placeholder="you@domain.com">
-          <button id="sbSendLink" class="btn btn-primary btn-sm mt-2">Send magic link</button>
-          <div class="small text-secondary mt-2">You’ll receive a one-time sign-in link.</div>
-        </div>
-        <div id="sbUserArea" class="d-none">
-          <div class="mb-2">Signed in as <span id="sbUserEmail"></span></div>
-          <div class="d-flex flex-wrap gap-2">
-            <button id="sbSave" class="btn btn-primary btn-sm">Save to Cloud</button>
-            <button id="sbLoad" class="btn btn-outline-primary btn-sm">Load from Cloud</button>
-            <button id="sbSignOut" class="btn btn-outline-danger btn-sm ms-auto">Sign out</button>
-          </div>
-          <div id="sbStatus" class="small text-secondary mt-2"></div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- Donate modal -->
-<div class="modal fade" id="donateModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content bg-dark text-light border border-secondary">
-      <div class="modal-header">
-        <h5 class="modal-title">Support the project 💙</h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-      </div>
-      <div class="modal-body">
-        <div class="mb-2">Choose a network and copy the address:</div>
-        <ul class="nav nav-pills mb-3" role="tablist">
-          <li class="nav-item"><button class="nav-link active" data-bs-toggle="pill" data-bs-target="#evm-pane" type="button">Ethereum / Base (EVM)</button></li>
-          <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#sol-pane" type="button">Solana</button></li>
-        </ul>
-        <div class="tab-content">
-          <div id="evm-pane" class="tab-pane fade show active">
-            <div class="input-group"><input id="evmAddr" class="form-control form-control-sm" readonly><button class="btn btn-outline-light btn-sm" id="copyEvm">Copy</button></div>
-            <div class="small text-secondary mt-2">Accepts ETH / ERC-20 on Ethereum & Base.</div>
-          </div>
-          <div id="sol-pane" class="tab-pane fade">
-            <div class="input-group"><input id="solAddr" class="form-control form-control-sm" readonly><button class="btn btn-outline-light btn-sm" id="copySol">Copy</button></div>
-            <div class="small text-secondary mt-2">Accepts SOL / SPL tokens.</div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-/* ===== Donation addresses ===== */
-const DONATE_ETH_ADDRESS='0x8ed6b33043470497b6803eF126234Ebb0d764E44';
-const DONATE_SOL_ADDRESS='9rcGbiGFab8enU7ixKh6ai1iPbEu6zVb4hvnVpdN8gDA';
-
-/* ===== Supabase (same project you used) ===== */
-const SUPABASE_URL='https://naksqjsuivlalltonldj.supabase.co';
-const SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5ha3NxanN1aXZsYWxsdG9ubGRqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY4MjgxNzYsImV4cCI6MjA3MjQwNDE3Nn0.8LttdRBSqP-zYPeUJpMGNIVly7h5mJ6MoZfP3i1-EOs';
-const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
-let REGISTERED_AT=null;
-
-/* ===== Data ===== */
-const PROJECTS=[
-  /* ===== DeFi ===== */
-  {cat:'DeFi',tier:'S',key:'axiom',name:'Axiom Trade',url:'https://axiom.trade/@petranto',
+/* -------------------- Data -------------------- */
+const PROJECTS = [
+  /* ==== DeFi (Hyperliquid focus) ==== */
+  { cat:'DeFi', tier:'S', key:'axiom',   name:'Axiom Trade', url:'https://axiom.trade/@petranto',
     desc:'Perps & liquidity hub (Solana). Undercrowded pools with real fees.',
     routine:['Open account & fund','Swap/LP on stable pairs','Try auto-vault / loop','Do some volume for points']},
-  {cat:'DeFi',tier:'S',key:'prjx',name:'PRJX (Hyperliquid)',url:'https://www.prjx.com/@petranto',
+  { cat:'DeFi', tier:'S', key:'prjx',    name:'PRJX (Hyperliquid)', url:'https://www.prjx.com/@petranto',
     desc:'DEX + Aggregator on HyperEVM; points + high-vol pools.',
     routine:['Bridge to Hyperliquid','Swap $50–$5k volume','LP WHYPE/USDT0 or USD0/kHYPE','Claim/track points']},
-  {cat:'DeFi',tier:'A',key:'hyperlend',name:'HyperLend (Hyperliquid)',url:'https://app.hyperlend.finance/?ref=PETRANTO',
+  { cat:'DeFi', tier:'A', key:'hyperlend', name:'HyperLend (Hyperliquid)', url:'https://app.hyperlend.finance/?ref=PETRANTO',
     desc:'Lending & loop stHYPE/feUSD for 15–30% + points.',
     routine:['Deposit stables/stHYPE','Borrow & loop (low leverage)','Repay & claim points']},
-  {cat:'DeFi',tier:'A',key:'felix',name:'Felix Protocol',url:'https://www.usefelix.xyz?ref=8956BB26',
+  { cat:'DeFi', tier:'A', key:'felix',   name:'Felix Protocol', url:'https://www.usefelix.xyz?ref=8956BB26',
     desc:'Lending/Vaults with points; USDe/feUSD vaults 10–25%.',
     routine:['Supply USDe/feUSD','Join Frontier Vault','Track Felix + Hyper points']},
-  {cat:'DeFi',tier:'A',key:'kinetiq',name:'Kinetiq (Hyperliquid)',url:'https://kinetiq.xyz/',
+  { cat:'DeFi', tier:'B', key:'kinetiq', name:'Kinetiq (Hyperliquid)', url:'https://kinetiq.xyz/',
     desc:'Liquid staking kHYPE with multipliers.',
     routine:['Stake HYPE → kHYPE','Recycle into lends','Harvest multipliers/points']},
-  {cat:'DeFi',tier:'B',key:'hypurr',name:'HypurrFi',url:'https://app.hypurr.fi/',
+  { cat:'DeFi', tier:'B', key:'hypurr',  name:'HypurrFi', url:'https://app.hypurr.fi/',
     desc:'Leveraged debt loops (20–40%) + Hypurr points.',
     routine:['Open a loop (modest LTV)','Monitor health','Claim points']},
-  {cat:'DeFi',tier:'B',key:'hyperbeat',name:'HyperBeat',url:'https://app.hyperbeat.org/earn',
+  { cat:'DeFi', tier:'B', key:'hyperbeat', name:'HyperBeat', url:'https://app.hyperbeat.org/earn',
     desc:'Aggregator vaults (15–35%) + hearts points.',
     routine:['Deposit to hbVault','Auto-compound']},
-  {cat:'DeFi',tier:'B',key:'paradex',name:'Paradex WL',url:'https://app.paradex.trade/wl/astutemakerz',
-    desc:'Whitelist tasks on Paradex.',
-    routine:['Finish WL tasks','Follow updates']},
+  { cat:'DeFi', tier:'D', key:'paradex',  name:'Paradex WL', url:'https://app.paradex.trade/wl/astutemakerz',
+    desc:'Whitelist tasks on Paradex.' , routine:['Register waitlist','Complete WL tasks']},
 
-  /* ===== SocialFi / InfoFi ===== */
-  {cat:'SocialFi/InfoFi',tier:'S',key:'kaito',name:'Kaito (Yaps)',url:'https://yaps.kaito.ai/referral/1382662710396080133',
+  /* ==== SocialFi / InfoFi ==== */
+  { cat:'SocialFi/InfoFi', tier:'S', key:'kaito', name:'Kaito (Yaps)', url:'https://yaps.kaito.ai/referral/1382662710396080133',
     desc:'SocialFi leader. Mindshare, data market & launchpad.',
-    routine:['Engage Top/Emerging Yapper feed','Airdrop/Earn campaign','Stake $KAITO','Post quality content']},
-  {cat:'SocialFi/InfoFi',tier:'A',key:'xeet',name:'Xeet',url:'https://www.xeet.ai/refer/PetrAnto12',
-    desc:'SocialFi focus on quality content (Signal > Noise).',
-    routine:['Create quality content','Refer quality users','Check profile','Play tournaments']},
-  {cat:'SocialFi/InfoFi',tier:'A',key:'cookie',name:'Cookie.fun',url:'https://www.cookie.fun/profile',
-    desc:'Capital-mindshare connections.',
-    routine:['Post about campaign projects','Refer users','Use/Trade AI agents','Stake/Lock $COOKIE','Daily tasks']},
-  {cat:'SocialFi/InfoFi',tier:'B',key:'ethos',name:'Ethos',url:'https://app.ethos.network/',
-    desc:'Web3 reputation.',
-    routine:['One review per day','Buy/Sell votes','Invite','Link wallets & socials']},
-  {cat:'SocialFi/InfoFi',tier:'B',key:'fundamental',name:'Fundamental.lol',url:'https://fundamental.lol/r/?node=PetrAnto12-5mu',
-    desc:'On-chain social hub.',
-    routine:['Visit & check-in','Mint passport','Invite quality people','HL eco wallets','Give/Get Kudos']},
-  {cat:'SocialFi/InfoFi',tier:'B',key:'klout',name:'Klout.gg',url:'https://klout.gg/',
-    desc:'Attention Market', referralNote:'Referral: “petranto 🧬”', copyText:'petranto 🧬',
-    routine:['Open/close 1 market position','Post on Klout','Shout referral once','Play Chaser']},
-  {cat:'SocialFi/InfoFi',tier:'C',key:'mindoshare',name:'Mindoshare.ai',url:'https://mindoshare.ai/kol?ref=cmev63nqn01mllr3wtpn2whcm',
-    desc:'SocialFi.',
-    routine:['Create content to complete tasks','Refer users','Complete tasks on X']},
-  {cat:'SocialFi/InfoFi',tier:'C',key:'wallchain',name:'Wallchain (Quacks)',url:'https://quacks.app/?ref=PetrAnto12',
-    desc:'SocialFi.',
-    routine:['Post on selected projects','Link reward wallets','Refer users','Claim Quacks']},
-  {cat:'SocialFi/InfoFi',tier:'C',key:'kudoswap',name:'KudoSwap',url:'https://kudoswap.com/PetrAnto12',
-    desc:'SocialFi & tokens.',
-    routine:['Give Kudos','Get Kudos','Find community code']},
+    routine:['Engage on Top/Emerging Yapper feed','Check Airdrop/Earn campaign','Stake $KAITO','Post quality content daily']},
+  { cat:'SocialFi/InfoFi', tier:'A', key:'xeet', name:'Xeet', url:'https://www.xeet.ai/refer/PetrAnto12',
+    desc:'Quality content SocialFi (Signal > Noise).',
+    routine:['Post quality content','Refer quality users','Check profile','Play tournaments']},
+  { cat:'SocialFi/InfoFi', tier:'B', key:'ethos', name:'Ethos', url:'https://app.ethos.network/',
+    desc:'Web3 reputation.', routine:['One review per day','Buy/Sell votes','Invite','Link wallets & socials']},
+  { cat:'SocialFi/InfoFi', tier:'C', key:'mindoshare', name:'Mindoshare.ai', url:'https://mindoshare.ai/kol?ref=cmev63nqn01mllr3wtpn2whcm',
+    desc:'Create to complete tasks.', routine:['Create content','Refer users','Complete tasks on X']},
+  { cat:'SocialFi/InfoFi', tier:'C', key:'wallchain', name:'Wallchain (Quacks)', url:'https://quacks.app/?ref=PetrAnto12',
+    desc:'Rewards + claims.', routine:['Post on selected projects','Link reward wallets','Refer users','Claim Quacks']},
+  { cat:'SocialFi/InfoFi', tier:'C', key:'kudoswap', name:'KudoSwap', url:'https://kudoswap.com/PetrAnto12',
+    desc:'SocialFi & tokens.', routine:['Give Kudos','Get Kudos','Find community code']},
+  { cat:'SocialFi/InfoFi', tier:'C', key:'fundamental', name:'Fundamental.lol', url:'https://fundamental.lol/r/?node=PetrAnto12-5mu',
+    desc:'On-chain social hub.', routine:['Daily check-in','Mint passport','Invite quality people','Give/Get Kudos']},
 
-  /* ===== Web3 Quests ===== */
-  {cat:'Web3 Quests',tier:'S',key:'galxe',name:'Galxe',url:'https://app.galxe.com/hub/invite?code=GICyJr43Nj1NJrZqi4fhOdcjt4V_avTgEEJxuu-AC0=',
+  /* ==== Web3 Quests ==== */
+  { cat:'Web3 Quests', tier:'S', key:'galxe', name:'Galxe', url:'https://app.galxe.com/hub/invite?code=GICyJr43Nj1NJrZqi4fhOdcjt4V_avTgEEJxuu-AC0=',
     desc:'Quest & airdrop hub.', routine:['Pick 1–2 quick quests','Complete & verify','Claim OAT/points','Scan new campaigns']},
-  {cat:'Web3 Quests',tier:'A',key:'consumerfi',name:'ConsumerFi',url:'https://www.consumerfi.ai/app?referral_code=PVZcXvqV',
-    desc:'ConsumerFi quests.', routine:['Daily check-in & tasks','Refer users','Training tasks','Claim credits']},
-  {cat:'Web3 Quests',tier:'A',key:'edgen',name:'Edgen Aura',url:'https://www.edgen.tech/aura/PetrAnto12',
-    desc:'AI tools for markets.', routine:['Perform tasks & claim','Refer users','Use tools','Post & mention Edgen','Register']},
-  {cat:'Web3 Quests',tier:'B',key:'astranova',name:'Astranova BlackPass',url:'https://blackpass.astranova.world?referral_code=6ed940ede64b',
-    desc:'SocialFi quests.', routine:['Daily spin','Refer users','Complete tasks','Update BlackPass NFT']},
-  {cat:'Web3 Quests',tier:'C',key:'addicted',name:'Addicted.fun Invite code',url:'https://addicted.fun',
-    desc:'On-chain Play-to-Earn.', routine:['Invite','Not much yet…']},
-  {cat:'Web3 Quests',tier:'C',key:'rally',name:'Rally.fun Waitlist',url:'https://waitlist.rally.fun/joinme/PetrAnto12',
-    desc:'Marketing tool.', routine:['Confirm email/profile','Refer users','Watch for more activities']},
+  { cat:'Web3 Quests', tier:'A', key:'consumerfi', name:'ConsumerFi', url:'https://www.consumerfi.ai/app?referral_code=PVZcXvqV',
+    desc:'ConsumerFi quests.', routine:['Daily check-in','Refer users','Complete training','Claim credits']},
+  { cat:'Web3 Quests', tier:'A', key:'edgenAura', name:'Edgen Aura', url:'https://www.edgen.tech/aura/PetrAnto12',
+    desc:'AI tools for markets.', routine:['Perform quest tasks & claim','Refer users','Use tools','Post tokens/stocks mentioning Edgen']},
+  { cat:'Web3 Quests', tier:'B', key:'astranovaBP', name:'Astranova BlackPass', url:'https://blackpass.astranova.world?referral_code=6ed940ede64b',
+    desc:'SocialFi quests.', routine:['Daily Spin','Refer users','Complete tasks','Update Black Pass NFT']},
+  { cat:'Web3 Quests', tier:'C', key:'addicted', name:'Addicted.fun Invite code', url:'https://addicted.fun',
+    desc:'On-chain P2E.', routine:['Invite','(Early stage)']},
+  { cat:'Web3 Quests', tier:'C', key:'rallyWait', name:'Rally.fun Waitlist', url:'https://waitlist.rally.fun/joinme/PetrAnto12',
+    desc:'Marketing tool.', routine:['Confirm email/profile','Refer users','Check for more activities']},
 
-  /* ===== Fantasy ===== */
-  {cat:'Fantasy',tier:'A',key:'fantasyTop',name:'FantasyTop',url:'https://fantasy.top?ref=petranto12',
-    desc:'Fantasy trading of creators.', routine:['Clout: claim/check-in','Core: trade/register decks','Engage 3 creators','Free: claim/keep streak']},
-  {cat:'Fantasy',tier:'B',key:'footballFun',name:'Football.fun',url:'https://pro.football.fun/login/?referral_code=UWM2GXU9V8O',
-    desc:'Fantasy football.', routine:['Complete tasks','Trade players','Join team','Invite users']},
+  /* ==== Fantasy ==== */
+  { cat:'Fantasy', tier:'A', key:'fantasyTop', name:'FantasyTop', url:'https://fantasy.top?ref=petranto12',
+    desc:'Fantasy trading of creators.', routine:['Daily claim/check-in','Trade cards / Register Decks','Engage creator profiles','Claim rewards / keep streak']},
+  { cat:'Fantasy', tier:'B', key:'footballFun', name:'Football.fun', url:'https://pro.football.fun/login/?referral_code=UWM2GXU9V8O',
+    desc:'Fantasy football.', routine:['Complete tasks','Trade players','Join team','Invite users']}
 ];
 
-/* ===== Period helpers ===== */
+/* -------------------- Time helpers -------------------- */
+const pad = n => String(n).padStart(2,'0');
+const today = () => { const d=new Date(); return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`; };
+const addDays = (d,delta)=>{const nd=new Date(d); nd.setDate(nd.getDate()+delta); return nd;};
+const fmtDayCol = (d)=>{const m=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']; return `${pad(d.getDate())}-${m[d.getMonth()]}`;};
+const getISOWeek=(d)=>{const date=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()));const dayNum=date.getUTCDay()||7;date.setUTCDate(date.getUTCDate()+4-dayNum);const ys=new Date(Date.UTC(date.getUTCFullYear(),0,1));return Math.ceil((((date-ys)/86400000)+1)/7);};
+const quarterOf=(d)=>Math.floor(d.getMonth()/3)+1;
+const toDateOnly = (x)=> new Date(new Date(x).getFullYear(), new Date(x).getMonth(), new Date(x).getDate());
+const dayDiff = (a,b)=> Math.floor((toDateOnly(b) - toDateOnly(a)) / 86400000);
+const lastNDaysDesc =(n)=>Array.from({length:n},(_,i)=>addDays(new Date(),-(i+1)));
+const lastNWeeksDesc=(n)=>Array.from({length:n},(_,i)=>{const now=new Date();const end=addDays(now,-7*i);const start=addDays(now,-7*(i+1));return {start,end};});
+const lastNMonthsDesc=(n)=>Array.from({length:n},(_,i)=>{const now=new Date();const ref=new Date(now.getFullYear(),now.getMonth()-(i+1),1);const start=new Date(ref.getFullYear(),ref.getMonth(),1);const end=new Date(ref.getFullYear(),ref.getMonth()+1,1);return {start,end,label:start.toLocaleString('en',{month:'long'})};});
+const lastNQuartersDesc=(n)=>{const out=[];const now=new Date();let q=quarterOf(now)-1,y=now.getFullYear();for(let i=0;i<n;i++){if(q===0){q=4;y-=1;}const sm=(q-1)*3;const start=new Date(y,sm,1);const end=new Date(y,sm+3,1);out.push({start,end,label:`Q${q}-${String(y).slice(-2)}`});q--; }return out;};
+
 const PAST_DAYS=7, PAST_WEEKS=4, PAST_MONTHS=3, PAST_QUARTERS=3;
-const pad=n=>String(n).padStart(2,'0');
-const today=()=>{const d=new Date();return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`};
-const addDays=(d,delta)=>{const nd=new Date(d);nd.setDate(nd.getDate()+delta);return nd};
-const fmtDayCol=d=>['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][d.getMonth()]+' '+pad(d.getDate());
-const getISOWeek=d=>{const x=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()));const n=x.getUTCDay()||7;x.setUTCDate(x.getUTCDate()+4-n);const y=new Date(Date.UTC(x.getUTCFullYear(),0,1));return Math.ceil((((x-y)/86400000)+1)/7)};
-const quarterOf=d=>Math.floor(d.getMonth()/3)+1;
-const toDateOnly=x=>new Date(new Date(x).getFullYear(),new Date(x).getMonth(),new Date(x).getDate());
-const dayDiff=(a,b)=>Math.floor((toDateOnly(b)-toDateOnly(a))/86400000);
-const lastNDaysDesc=n=>Array.from({length:n},(_,i)=>addDays(new Date(),-(i+1)));
-const lastNWeeksDesc=n=>Array.from({length:n},(_,i)=>{const now=new Date();const end=addDays(now,-7*i);const start=addDays(now,-7*(i+1));return {start,end};});
-const lastNMonthsDesc=n=>Array.from({length:n},(_,i)=>{const now=new Date();const ref=new Date(now.getFullYear(),now.getMonth()-(i+1),1);const start=new Date(ref.getFullYear(),ref.getMonth(),1);const end=new Date(ref.getFullYear(),ref.getMonth()+1,1);return {start,end,label:start.toLocaleString('en',{month:'long'})};});
-const lastNQuartersDesc=n=>{const out=[];const now=new Date();let q=quarterOf(now)-1,y=now.getFullYear();for(let i=0;i<n;i++){if(q===0){q=4;y-=1}const sm=(q-1)*3;const start=new Date(y,sm,1);const end=new Date(y,sm+3,1);out.push({start,end,label:`Q${q}-${String(y).slice(-2)}`});q--}return out};
 
-/* ===== Local storage ===== */
-const STORAGE_KEY='airdropTracker.v5';
-const CAT_STATE_KEY='airdrop.catState.v1';
-const load=()=>{try{return JSON.parse(localStorage.getItem(STORAGE_KEY))||{}}catch{return{}}};
-const save=d=>localStorage.setItem(STORAGE_KEY,JSON.stringify(d));
-const ensureProj=(data,key)=>{if(!data[key])data[key]={daily:{},active:true};return data[key]};
-const getActive=key=>{const d=load();return d[key]?.active!==false};
-const setActive=(key,val)=>{const d=load();ensureProj(d,key).active=!!val;save(d)};
-const setTodayState=(key,patch)=>{const d=load();const p=ensureProj(d,key);const t=today();if(!p.daily[t])p.daily[t]={clicked:false,farmed:false};Object.assign(p.daily[t],patch);save(d)};
-const getDayState=(key,ds)=>{const d=load();return (d[key]&&d[key].daily&&d[key].daily[ds])||{clicked:false,farmed:false}};
-const stateToColor=s=>(s.farmed&&s.clicked)?'green':(s.clicked?'yellow':'red');
-const getCatState=()=>{try{return JSON.parse(localStorage.getItem(CAT_STATE_KEY))||{}}catch{return{}}};
-const setCatState=s=>localStorage.setItem(CAT_STATE_KEY,JSON.stringify(s));
+/* -------------------- Storage -------------------- */
+const STORAGE_KEY='airdropTracker.v5'; const CAT_STATE_KEY='airdrop.catState.v2';
+const load = ()=>{try{return JSON.parse(localStorage.getItem(STORAGE_KEY))||{}}catch{return {}}};
+const save = (data)=>localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+const ensureProj=(data,key)=>{if(!data[key]) data[key]={daily:{}, active:true}; return data[key];};
+const getActive = key => (load()[key]?.active !== false);
+const setActive = (key,val)=>{const data=load(); ensureProj(data,key).active=!!val; save(data);};
 
-/* ===== 100% rule stats ===== */
-function windowStatsDays(key,start,end){
-  let total=0,clicked=0,farmed=0;
-  for(let d=new Date(start);d<end;d.setDate(d.getDate()+1)){
+const setTodayState=(key,patch)=>{const data=load();const proj=ensureProj(data,key);const t=today(); if(!proj.daily[t]) proj.daily[t]={clicked:false,farmed:false}; Object.assign(proj.daily[t],patch); save(data);};
+const getDayState=(key,dateStr)=>{const data=load();return (data[key]&&data[key].daily&&data[key].daily[dateStr])||{clicked:false,farmed:false}};
+const stateToColor=(s)=>(s.farmed&&s.clicked)?'green':(s.clicked?'yellow':'red');
+
+/* 100% rule stats + tooltips */
+function windowStatsDays(key, start, end){
+  let total=0, clicked=0, farmed=0;
+  for(let d=new Date(start); d<end; d.setDate(d.getDate()+1)){
     total++;
     const ds=`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
     const s=getDayState(key,ds);
-    if(s.clicked) clicked++;
-    if(s.clicked&&s.farmed) farmed++;
+    if (s.clicked) clicked++;
+    if (s.clicked && s.farmed) farmed++;
   }
   let color='red';
-  if(total>0&&farmed===total) color='green';
-  else if(clicked>0||farmed>0) color='yellow';
-  return {color,clickedDays:clicked,farmedDays:farmed,totalDays:total};
+  if (total>0 && farmed===total) color='green';
+  else if (clicked>0 || farmed>0) color='yellow';
+  return { color, clickedDays:clicked, farmedDays:farmed, totalDays:total };
 }
-function monthBounds(dt){return {start:new Date(dt.getFullYear(),dt.getMonth(),1),end:new Date(dt.getFullYear(),dt.getMonth()+1,1)}}
-function quarterStats(key,start,end){
-  let totalMonths=0,greenMonths=0;
-  for(let c=new Date(start);c<end;){const {start:ms,end:me}=monthBounds(c); if(ms>=end) break; totalMonths++; const ds=windowStatsDays(key,ms,me); if(ds.totalDays>0&&ds.farmedDays===ds.totalDays) greenMonths++; c=me;}
-  let color='red'; if(greenMonths===totalMonths&&totalMonths>0) color='green'; else if(greenMonths>0) color='yellow';
-  return {color,greenMonths,totalMonths};
-}
-
-/* ===== Routine score ===== */
-function completionStatsForProject(key){
-  const d=load(); const daily=(d[key]&&d[key].daily)||{}; const all=Object.keys(daily).sort();
-  let reg=REGISTERED_AT?toDateOnly(REGISTERED_AT):(all.length?toDateOnly(new Date(all[0])):toDateOnly(new Date()));
-  const tdy=toDateOnly(new Date()); const total=Math.max(1,dayDiff(reg,tdy)+1); let done=0;
-  for(const ds of Object.keys(daily)){const dd=toDateOnly(new Date(ds)); if(dd>=reg&&dd<=tdy && daily[ds]?.farmed) done++}
-  const pct=Math.round(100*(done/total)); return {pct,completed:done,totalDays:total,since:`${reg.getFullYear()}-${pad(reg.getMonth()+1)}-${pad(reg.getDate())}`};
+function monthBounds(dt){ const start=new Date(dt.getFullYear(),dt.getMonth(),1); const end=new Date(dt.getFullYear(),dt.getMonth()+1,1); return {start,end}; }
+function windowStatsQuarterMonths(key,start,end){
+  let totalMonths=0, greenMonths=0, cursor=new Date(start);
+  while(cursor<end){ const {start:ms,end:me}=monthBounds(cursor); if (ms>=end) break; totalMonths++; const ds=windowStatsDays(key,ms,me); if (ds.totalDays>0 && ds.farmedDays===ds.totalDays) greenMonths++; cursor=me; }
+  let color='red'; if (greenMonths===totalMonths && totalMonths>0) color='green'; else if (greenMonths>0) color='yellow';
+  return { color, greenMonths, totalMonths };
 }
 
-/* ===== Render ===== */
+/* -------------------- Render -------------------- */
 const bodyEl=document.getElementById('trackerBody');
-const FIXED_BEFORE_HISTORY = 1/*Tier*/+1/*Project*/+1/*Desc*/+1/*Routine*/+1/*Score*/+2/*Click/Farm*/;
+const escapeHtml=(s='')=>s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const renderRoutine=(arr)=>!arr||!arr.length ? '' : `<ul>${arr.slice(0,6).map(x=>`<li>${escapeHtml(x)}`).join('')}</ul>`;
 
-function makeStatusCell(color,title=''){const td=document.createElement('td');td.className='text-center';if(title)td.title=title;const b=document.createElement('div');b.className=`status-box status-${color}`;td.appendChild(b);return td}
-function setStatus(td,color,title=''){td.title=title||'';const b=td.querySelector('.status-box');if(!b)return;b.className=`status-box status-${color}`}
+function makeStatusCell(color,title=''){
+  const td=document.createElement('td'); td.className='text-center'; if(title) td.title=title;
+  const div=document.createElement('div'); div.className=`status-box status-${color}`; td.appendChild(div);
+  return td;
+}
+function setCellStatus(td,color,title=''){
+  td.title=title||'';
+  const box=td.querySelector('.status-box'); if(!box) return;
+  box.classList.remove('status-green','status-yellow','status-red');
+  box.classList.add(`status-${color}`);
+}
 
-function tierColourClass(letter){const L=(letter||'').toString().trim().toUpperCase(); return `tier-${L}`}
+function categoryNames(cat){ return PROJECTS.filter(p=>p.cat===cat).map(p=>p.name).join(', '); }
+function groupedByTier(cat){
+  const order=['S','A','B','C','D'];
+  const g={S:[],A:[],B:[],C:[],D:[]};
+  PROJECTS.filter(p=>p.cat===cat).forEach(p=>g[p.tier].push(p));
+  return order.map(k=>({tier:k, items:g[k]}));
+}
 
 function renderCategory(cat){
-  const items=PROJECTS.filter(p=>p.cat===cat);
-  if(!items.length) return;
+  const days=lastNDaysDesc(PAST_DAYS), weeks=lastNWeeksDesc(PAST_WEEKS),
+        months=lastNMonthsDesc(PAST_MONTHS), quarters=lastNQuartersDesc(PAST_QUARTERS);
 
-  const days=lastNDaysDesc(PAST_DAYS), weeks=lastNWeeksDesc(PAST_WEEKS), months=lastNMonthsDesc(PAST_MONTHS), quarters=lastNQuartersDesc(PAST_QUARTERS);
-  const totalCols=FIXED_BEFORE_HISTORY+days.length+weeks.length+months.length+quarters.length;
+  const colCount = 1 /*tier*/ + 1 /*project*/ + 1 /*desc*/ + 1 /*routine*/ + 1 /*score*/ + 2 /*today*/ +
+                   days.length + weeks.length + months.length + quarters.length;
 
-  /* Category header */
-  const header=document.createElement('tr'); header.className='cat-row';
-  header.innerHTML=`<td colspan="${totalCols}">
+  /* Header row with names */
+  const header=document.createElement('tr');
+  header.className='cat-row';
+  header.innerHTML = `<td colspan="${colCount}">
     <div class="cat-title">
       <span class="cat-toggle" data-cat="${cat}">▼</span>
       <span class="fw-semibold">${cat}</span>
-      <span class="cat-desc">— ${items.map(i=>i.name).join(', ')}</span>
-      <span class="badge bg-secondary cat-badge ms-1">${items.length}</span>
+      <span class="cat-names">— ${escapeHtml(categoryNames(cat))}</span>
+      <span class="badge bg-secondary cat-badge">${PROJECTS.filter(p=>p.cat===cat).length}</span>
     </div>
   </td>`;
   bodyEl.appendChild(header);
 
-  /* Intro row (legend + list by tier in the FIRST cell) */
-  const byTier = items.reduce((m,p)=>{const L=p.tier.trim().toUpperCase(); (m[L]??=[]).push(p.name); return m},{S:[],A:[],B:[],C:[],D:[]});
-  const intro=document.createElement('tr');
-  intro.innerHTML=`
-    <td class="tier-legend" style="vertical-align:top;">
-      <div><b>S</b> Must-farm / top quality</div>
-      <ul class="tier-list">${(byTier.S||[]).map(n=>`<li>${n}</li>`).join('')}</ul>
-      <div class="mt-2"><b>A</b> High priority</div>
-      <ul class="tier-list">${(byTier.A||[]).map(n=>`<li>${n}</li>`).join('')}</ul>
-      <div class="mt-2"><b>B</b> Optional / watchlist</div>
-      <ul class="tier-list">${(byTier.B||[]).map(n=>`<li>${n}</li>`).join('')}</ul>
-      <div class="mt-2"><b>C</b> Experimental / WL</div>
-      <ul class="tier-list">${(byTier.C||[]).map(n=>`<li>${n}</li>`).join('')}</ul>
-      <div class="mt-2"><b>D</b> Long shots</div>
-      <ul class="tier-list">${(byTier.D||[]).map(n=>`<li>${n}</li>`).join('')}</ul>
-    </td>
-    <td colspan="${totalCols-1}" class="text-secondary small">Columns below apply to this category.</td>`;
-  bodyEl.appendChild(intro);
+  /* Legend row: textual legend + ranked names */
+  const tierOrder=['S','A','B','C','D'];
+  const colorClass={S:'legend-s',A:'legend-a',B:'legend-b',C:'legend-c',D:'legend-d'};
+  const namesByTier = groupedByTier(cat).map(g=>`<div class="ranked-names mb-1">
+      <b>${g.tier}</b> <span>${g.items.map(x=>escapeHtml(x.name)).join(' • ')||'—'}</span>
+    </div>`).join('');
+  const legend=document.createElement('tr'); legend.className='legend-row';
+  legend.innerHTML = `
+    <td colspan="${colCount}">
+      <div class="row gx-3">
+        <div class="col-sm-5 col-lg-4">
+          <div class="tier-legend">
+            <span class="legend-badge legend-s"></span><span><b>S</b> Must-farm / top quality</span>
+            <span class="legend-badge legend-a"></span><span><b>A</b> High priority</span>
+            <span class="legend-badge legend-b"></span><span><b>B</b> Optional / watchlist</span>
+            <span class="legend-badge legend-c"></span><span><b>C</b> Experimental / WL</span>
+            <span class="legend-badge legend-d"></span><span><b>D</b> Long shots</span>
+          </div>
+        </div>
+        <div class="col-sm-7 col-lg-8">${namesByTier}</div>
+      </div>
+    </td>`;
+  bodyEl.appendChild(legend);
 
-  /* Per-category columns header (after intro) */
-  const cols=document.createElement('tr'); cols.className='columns-head';
-  cols.innerHTML=`
-    <th>Tier</th><th class="project-col text-center">Project</th><th class="desc-col text-center">Description</th>
-    <th class="routine-col text-center">Routine</th><th class="score-col text-center">Routine Score</th>
-    <th class="text-center">Click</th><th class="text-center">Farm</th>
-    ${days.map(d=>`<th class="text-center">${fmtDayCol(d)}</th>`).join('')}
-    ${weeks.map(w=>`<th class="text-center">CW${getISOWeek(addDays(w.end,-1))}</th>`).join('')}
-    ${months.map(m=>`<th class="text-center">${m.label}</th>`).join('')}
-    ${quarters.map(q=>`<th class="text-center">${q.label}</th>`).join('')}
+  /* Per-category small header row (as requested) */
+  const head=document.createElement('tr');
+  head.innerHTML = `
+    <th class="text-center" style="width:56px">Tier</th>
+    <th class="project-col text-center">Project</th>
+    <th class="desc-col text-center">Description</th>
+    <th class="routine-col text-center">Routine</th>
+    <th class="score-col text-center">Routine Score</th>
+    <th class="today-col">Click</th>
+    <th class="today-col">Farm</th>
+    ${days.map(d=>`<th class="history-col">${fmtDayCol(d)}</th>`).join('')}
+    ${weeks.map(w=>`<th class="history-col">CW${getISOWeek(addDays(w.end,-1))}</th>`).join('')}
+    ${months.map(m=>`<th class="history-col">${m.label}</th>`).join('')}
+    ${quarters.map(q=>`<th class="history-col">${q.label}</th>`).join('')}
   `;
-  bodyEl.appendChild(cols);
+  bodyEl.appendChild(head);
 
-  /* Rows */
-  items.forEach(p=>{
-    const tr=document.createElement('tr'); const isActive=getActive(p.key); if(!isActive) tr.classList.add('inactive');
+  /* Rows by tier with merged tier cell */
+  const catState=getCatState(); const collapsed = catState[cat]===true;
+  const tierGroups = groupedByTier(cat);
 
-    // Tier cell
-    const tdTier=document.createElement('td'); tdTier.className=`tiercell ${tierColourClass(p.tier)}`; tdTier.textContent=p.tier.trim().toUpperCase(); tr.appendChild(tdTier);
+  tierGroups.forEach(group=>{
+    const colorClassMap={S:'tier-S',A:'tier-A',B:'tier-B',C:'tier-C',D:'tier-D'};
+    const rows=group.items.length||1;
 
-    // Project cell (with include toggle)
-    const tdProj=document.createElement('td'); tdProj.className='project-cell';
-    const swWrap=document.createElement('span'); swWrap.className='form-check form-switch form-switch-sm d-inline-flex align-items-center me-2';
-    const sw=document.createElement('input'); sw.type='checkbox'; sw.className='form-check-input'; sw.role='switch'; sw.checked=isActive; sw.title='Include in score';
-    sw.addEventListener('change',()=>{setActive(p.key,sw.checked); tr.classList.toggle('inactive',!sw.checked); [...tr.querySelectorAll('.todayDisable')].forEach(el=>el.disabled=!sw.checked); repaintInactiveHistory(p.key,tr);});
-    swWrap.appendChild(sw); tdProj.appendChild(swWrap);
-    const a=document.createElement('a'); a.href=p.url; a.textContent=p.name; a.target='_blank'; a.rel='noopener';
-    a.addEventListener('click',()=>{setTodayState(p.key,{clicked:true}); cbClick.checked=true; updateHistoryCellsForRow(p.key,tr);});
-    tdProj.appendChild(a);
-    if(p.referralNote||p.copyText){
-      const tag=document.createElement('span'); tag.className='badge rounded-pill text-bg-secondary ms-2'; tag.textContent=p.referralNote||'Code';
-      tag.style.cursor='pointer'; tag.title=p.referralNote||'Code';
-      tag.onclick=async()=>{ if(p.copyText){ try{ await navigator.clipboard.writeText(p.copyText); showToast('Copied: '+p.copyText);}catch{showToast('Copy failed');}}};
-      tdProj.appendChild(tag);
-    }
-    tr.appendChild(tdProj);
+    group.items.forEach((p,idx)=>{
+      const tr=document.createElement('tr'); tr.dataset.cat=cat; tr.dataset.hidden = collapsed ? "1" : "0";
+      const isActive=getActive(p.key); if(!isActive) tr.classList.add('inactive');
 
-    const tdDesc=document.createElement('td'); tdDesc.className='desc-col'; tdDesc.textContent=p.desc||''; tr.appendChild(tdDesc);
+      /* merged tier cell in first row of the group */
+      if(idx===0){
+        const td=document.createElement('td'); td.className='tier-cell'; td.rowSpan=rows;
+        td.innerHTML=`<div class="tier-block ${colorClassMap[group.tier]}">${group.tier}</div>`;
+        tr.appendChild(td);
+      }
 
-    const tdRoutine=document.createElement('td'); tdRoutine.className='routine-col';
-    const ul=document.createElement('ul'); (p.routine||[]).slice(0,8).forEach(s=>{const li=document.createElement('li'); li.textContent=s; ul.appendChild(li)}); tdRoutine.appendChild(ul);
-    tr.appendChild(tdRoutine);
+      /* project cell + active toggle */
+      const projectCell=document.createElement('td'); projectCell.className='project-cell';
+      const trackWrap=document.createElement('span');
+      trackWrap.className='form-check form-switch form-switch-sm d-inline-flex align-items-center me-2';
+      const track=document.createElement('input'); track.type='checkbox'; track.className='form-check-input'; track.role='switch';
+      track.checked=isActive; track.title='Include in score';
+      track.addEventListener('change',()=>{ setActive(p.key,track.checked); tr.classList.toggle('inactive',!track.checked); repaintInactiveHistory(p.key,tr); });
+      trackWrap.appendChild(track); projectCell.appendChild(trackWrap);
 
-    const tdScore=document.createElement('td'); tdScore.className='score-col';
-    const s=completionStatsForProject(p.key);
-    tdScore.innerHTML=`<div class="progress" style="height:10px"><div class="progress-bar bg-success" style="width:${s.pct}%"></div></div><div class="small text-secondary mt-1">${s.pct}% • ${s.completed}/${s.totalDays}d since ${s.since}</div>`;
-    tr.appendChild(tdScore);
+      const a=document.createElement('a'); a.href=p.url; a.textContent=p.name; a.target='_blank'; a.rel='noopener';
+      a.addEventListener('click',()=>{ setTodayState(p.key,{clicked:true}); cbClick.checked=true; updateHistoryCellsForRow(p.key,tr); });
+      projectCell.appendChild(a);
+      tr.appendChild(projectCell);
 
-    // Today
-    const tdClick=document.createElement('td'); tdClick.className='text-center';
-    const cbClick=document.createElement('input'); cbClick.type='checkbox'; cbClick.className='form-check-input todayDisable'; cbClick.setAttribute('readonly','readonly');
-    cbClick.checked=getDayState(p.key,today()).clicked; tdClick.appendChild(cbClick); tr.appendChild(tdClick);
+      const tdDesc=document.createElement('td'); tdDesc.className='desc-col'; tdDesc.textContent=p.desc||''; tr.appendChild(tdDesc);
+      const tdRoutine=document.createElement('td'); tdRoutine.className='routine-col'; tdRoutine.innerHTML=renderRoutine(p.routine); tr.appendChild(tdRoutine);
 
-    const tdFarm=document.createElement('td'); tdFarm.className='text-center';
-    const cbFarm=document.createElement('input'); cbFarm.type='checkbox'; cbFarm.className='form-check-input todayDisable';
-    cbFarm.checked=getDayState(p.key,today()).farmed; cbFarm.addEventListener('change',()=>{setTodayState(p.key,{farmed:cbFarm.checked}); updateHistoryCellsForRow(p.key,tr);});
-    tdFarm.appendChild(cbFarm); tr.appendChild(tdFarm);
-    cbClick.disabled=cbFarm.disabled=!isActive;
+      /* routine score (simple % of farmed days since first activity) */
+      const s = completionStatsForProject(p.key);
+      const tdScore=document.createElement('td'); tdScore.className='score-col';
+      tdScore.innerHTML = `<div class="progress" style="height:10px;">
+          <div class="progress-bar ${s.pct>=70?'bg-success':s.pct>=30?'bg-warning':'bg-danger'}" style="width:${s.pct}%"></div>
+        </div><div class="small text-secondary mt-1">${s.pct}% • ${s.completed}/${s.totalDays}d since ${s.since}</div>`;
+      tr.appendChild(tdScore);
 
-    // History columns
-    lastNDaysDesc(PAST_DAYS).forEach(d=>{const ds=`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`; tr.appendChild(makeStatusCell(stateToColor(getDayState(p.key,ds))))});
-    lastNWeeksDesc(PAST_WEEKS).forEach(w=>{const st=windowStatsDays(p.key,w.start,w.end); const pct=st.totalDays?Math.round(100*st.farmedDays/st.totalDays):0; tr.appendChild(makeStatusCell(st.color,`${st.farmedDays}/${st.totalDays} days farmed (${pct}%)`))});
-    lastNMonthsDesc(PAST_MONTHS).forEach(m=>{const st=windowStatsDays(p.key,m.start,m.end); const pct=st.totalDays?Math.round(100*st.farmedDays/st.totalDays):0; tr.appendChild(makeStatusCell(st.color,`${st.farmedDays}/${st.totalDays} days farmed (${pct}%)`))});
-    lastNQuartersDesc(PAST_QUARTERS).forEach(q=>{const st=quarterStats(p.key,q.start,q.end); const pct=st.totalMonths?Math.round(100*st.greenMonths/st.totalMonths):0; tr.appendChild(makeStatusCell(st.color,`${st.greenMonths}/${st.totalMonths} months fully farmed (${pct}%)`))});
+      /* today checkboxes */
+      const tdClick=document.createElement('td'); tdClick.className='text-center';
+      const cbClick=document.createElement('input'); cbClick.type='checkbox'; cbClick.className='form-check-input'; cbClick.setAttribute('readonly','readonly');
+      cbClick.checked=getDayState(p.key,today()).clicked; tdClick.appendChild(cbClick); tr.appendChild(tdClick);
 
-    bodyEl.appendChild(tr);
-    repaintInactiveHistory(p.key,tr);
+      const tdFarm=document.createElement('td'); tdFarm.className='text-center';
+      const cbFarm=document.createElement('input'); cbFarm.type='checkbox'; cbFarm.className='form-check-input';
+      cbFarm.checked=getDayState(p.key,today()).farmed;
+      cbFarm.addEventListener('change',()=>{ setTodayState(p.key,{farmed:cbFarm.checked}); updateHistoryCellsForRow(p.key,tr); });
+      tdFarm.appendChild(cbFarm); tr.appendChild(tdFarm);
+
+      /* history */
+      lastNDaysDesc(PAST_DAYS).forEach(d=>{
+        const ds=`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+        tr.appendChild(makeStatusCell(stateToColor(getDayState(p.key,ds))));
+      });
+      lastNWeeksDesc(PAST_WEEKS).forEach(w=>{
+        const st=windowStatsDays(p.key,w.start,w.end);
+        const pct = st.totalDays ? Math.round(100*st.farmedDays/st.totalDays) : 0;
+        tr.appendChild(makeStatusCell(st.color,`${st.farmedDays}/${st.totalDays} days (${pct}%)`));
+      });
+      lastNMonthsDesc(PAST_MONTHS).forEach(m=>{
+        const st=windowStatsDays(p.key,m.start,m.end);
+        const pct = st.totalDays ? Math.round(100*st.farmedDays/st.totalDays) : 0;
+        tr.appendChild(makeStatusCell(st.color,`${st.farmedDays}/${st.totalDays} days (${pct}%)`));
+      });
+      lastNQuartersDesc(PAST_QUARTERS).forEach(q=>{
+        const st=windowStatsQuarterMonths(p.key,q.start,q.end);
+        const pct = st.totalMonths ? Math.round(100*st.greenMonths/st.totalMonths) : 0;
+        tr.appendChild(makeStatusCell(st.color,`${st.greenMonths}/${st.totalMonths} months (${pct}%)`));
+      });
+
+      bodyEl.appendChild(tr);
+      repaintInactiveHistory(p.key,tr);
+    });
   });
 
-  // collapse handler
-  header.querySelector('.cat-toggle').onclick=()=>{
-    const open = header.querySelector('.cat-toggle').textContent==='▼';
-    header.querySelector('.cat-toggle').textContent=open?'▶':'▼';
-    let sibling=header.nextElementSibling;
-    while(sibling && !sibling.classList.contains('cat-row')){
-      sibling.style.display=open?'none':''; sibling=sibling.nextElementSibling;
-    }
-    refreshToggleAllButton();
-  };
+  /* Toggle per category */
+  header.querySelector('.cat-toggle').addEventListener('click', ()=>{
+    const st=getCatState(); const willCollapse = !(st[cat]===true); st[cat]=willCollapse; setCatState(st);
+    document.querySelectorAll(`tr[data-cat="${cat}"]`).forEach(r=>r.dataset.hidden = willCollapse ? "1" : "0");
+    header.querySelector('.cat-toggle').textContent = willCollapse ? '▶' : '▼';
+  });
 }
 
-function repaintInactiveHistory(key,tr){
-  const active=getActive(key);
-  const startIdx=FIXED_BEFORE_HISTORY;
-  for(let i=startIdx;i<tr.cells.length;i++){
-    const td=tr.cells[i];
-    if(!active){td.classList.add('inactive-cell'); setStatus(td,'grey',td.title)}
-    else{td.classList.remove('inactive-cell')}
-  }
+function completionStatsForProject(key){
+  const data=load(); const daily=(data[key]&&data[key].daily)||{};
+  const all=Object.keys(daily).sort();
+  let reg = all.length ? toDateOnly(new Date(all[0])) : toDateOnly(new Date());
+  const tdy = toDateOnly(new Date());
+  const totalDays = Math.max(1, dayDiff(reg, tdy) + 1);
+  let completed=0;
+  for(const ds of Object.keys(daily)){ const d=toDateOnly(new Date(ds)); if(d>=reg && d<=tdy) if(daily[ds]?.farmed) completed++; }
+  const pct=Math.round(100*completed/totalDays);
+  return {pct,completed,totalDays,since:`${reg.getFullYear()}-${pad(reg.getMonth()+1)}-${pad(reg.getDate())}`};
 }
+function repaintInactiveHistory(key,tr){
+  const active=getActive(key); const startIdx = 1/*tier*/+1/*project*/+1/*desc*/+1/*routine*/+1/*score*/+2/*today*/;
+  for(let i=startIdx;i<tr.cells.length;i++){ const td=tr.cells[i]; if(!active){ td.classList.add('inactive-cell'); } else { td.classList.remove('inactive-cell'); } }
+}
+
+/* collapse state helpers */
+const getCatState = ()=>{ try{ return JSON.parse(localStorage.getItem(CAT_STATE_KEY))||{} }catch{ return {} } };
+const setCatState = s => localStorage.setItem(CAT_STATE_KEY, JSON.stringify(s));
 
 function renderAll(){
   bodyEl.innerHTML='';
   ['DeFi','SocialFi/InfoFi','Web3 Quests','Fantasy'].forEach(renderCategory);
-  refreshToggleAllButton();
 }
 
-/* ===== Buttons / helpers ===== */
-const showToast=msg=>{const tb=document.getElementById('toastBody'); tb.textContent=msg; new bootstrap.Toast(document.getElementById('toast')).show()}
+/* -------------------- Buttons -------------------- */
+const showToast=(msg)=>{document.getElementById('toastBody').textContent=msg; new bootstrap.Toast(document.getElementById('toast')).show();};
 
-function refreshToggleAllButton(){
-  const btn=document.getElementById('toggleAllBtn');
-  // if any category rows are visible -> show "Collapse all"
-  const anyOpen=[...document.querySelectorAll('.cat-row .cat-toggle')].some(x=>x.textContent==='▼');
-  btn.textContent = anyOpen ? 'Collapse all' : 'Expand all';
-}
-document.getElementById('toggleAllBtn').onclick=()=>{
-  const wantExpand=document.getElementById('toggleAllBtn').textContent.toLowerCase().includes('expand');
-  document.querySelectorAll('.cat-row .cat-toggle').forEach(t=>{
-    const open = t.textContent==='▼';
-    if(wantExpand && !open){t.click()} else if(!wantExpand && open){t.click()}
-  });
-};
+document.getElementById('toggleAllBtn').addEventListener('click', ()=>{
+  const st=getCatState(); const cats=['DeFi','SocialFi/InfoFi','Web3 Quests','Fantasy'];
+  const allCollapsed = cats.every(c=>st[c]===true);
+  cats.forEach(c=>{ st[c]=!allCollapsed; });
+  setCatState(st); renderAll();
+  document.getElementById('toggleAllBtn').textContent = allCollapsed ? 'Collapse all' : 'Expand all';
+});
 
-document.getElementById('resetTodayBtn').onclick=()=>{const d=load(); const t=today(); PROJECTS.forEach(p=>{if(d[p.key]?.daily?.[t]) d[p.key].daily[t]={clicked:false,farmed:false}}); save(d); renderAll(); showToast('Today reset.')};
-document.getElementById('resetAllBtn').onclick=()=>{ if(!confirm('This will erase ALL saved history. Continue?')) return; localStorage.removeItem(STORAGE_KEY); renderAll(); showToast('All data cleared.')};
-document.getElementById('exportBtn').onclick=()=>{const blob=new Blob([localStorage.getItem(STORAGE_KEY)||'{}'],{type:'application/json'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download=`airdrop-tracker-${today()}.json`; a.click(); URL.revokeObjectURL(url)};
-document.getElementById('importInput').onchange=async(e)=>{const f=e.target.files?.[0]; if(!f)return; const t=await f.text(); try{JSON.parse(t); localStorage.setItem(STORAGE_KEY,t); renderAll(); showToast('Import successful.')}catch{showToast('Invalid JSON');} finally{e.target.value=''}}
+document.getElementById('resetTodayBtn').addEventListener('click',()=>{
+  const data=load(); const t=today(); PROJECTS.forEach(p=>{ if(data[p.key]?.daily?.[t]) data[p.key].daily[t]={clicked:false,farmed:false};});
+  save(data); renderAll(); showToast('Today reset.');
+});
+document.getElementById('resetAllBtn').addEventListener('click',()=>{
+  if(!confirm('Erase ALL saved history for this tracker?')) return;
+  localStorage.removeItem(STORAGE_KEY); renderAll(); showToast('All data cleared.');
+});
+document.getElementById('exportBtn').addEventListener('click',()=>{
+  const blob=new Blob([localStorage.getItem(STORAGE_KEY)||'{}'],{type:'application/json'});
+  const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download=`airdrop-tracker-${today()}.json`; a.click(); URL.revokeObjectURL(url);
+});
+document.getElementById('importInput').addEventListener('change',async(e)=>{
+  const file=e.target.files?.[0]; if(!file) return; const text=await file.text();
+  try{ JSON.parse(text); localStorage.setItem(STORAGE_KEY,text); renderAll(); showToast('Import OK.'); }catch{ showToast('Invalid JSON.'); } finally{ e.target.value=''; }
+});
 
-const donateModal=new bootstrap.Modal(document.getElementById('donateModal'));
-document.getElementById('donateBtn').onclick=()=>{document.getElementById('evmAddr').value=DONATE_ETH_ADDRESS; document.getElementById('solAddr').value=DONATE_SOL_ADDRESS; donateModal.show()}
-document.getElementById('copyEvm').onclick=async()=>{try{await navigator.clipboard.writeText(DONATE_ETH_ADDRESS); showToast('EVM address copied')}catch{}}
-document.getElementById('copySol').onclick=async()=>{try{await navigator.clipboard.writeText(DONATE_SOL_ADDRESS); showToast('Solana address copied')}catch{}}
-
-/* ===== Supabase auth minimal (unchanged) ===== */
-const sbModal=new bootstrap.Modal(document.getElementById('sbModal'));
-document.getElementById('sbAccountBtn').onclick=async()=>{await refreshSbAuthUI(); sbModal.show()}
-async function upsertProfile(user){await sb.from('profiles').upsert({user_id:user.id,email:user.email||null},{onConflict:'user_id'})}
-async function loadProfile(user){const {data:prof}=await sb.from('profiles').select('registered_at,email').eq('user_id',user.id).single(); REGISTERED_AT=prof?.registered_at?new Date(prof.registered_at):null; renderAll()}
-async function refreshSbAuthUI(){const {data:{user}}=await sb.auth.getUser(); const a=document.getElementById('sbAuthArea'); const u=document.getElementById('sbUserArea'); if(user){a.classList.add('d-none');u.classList.remove('d-none'); document.getElementById('sbUserEmail').textContent=user.email||'(no email)'; await upsertProfile(user); await loadProfile(user)} else {a.classList.remove('d-none');u.classList.add('d-none'); REGISTERED_AT=null; renderAll()}}
-document.getElementById('sbSendLink').onclick=async()=>{const email=document.getElementById('sbEmail').value.trim(); if(!email) return showToast('Enter an email.'); const {error}=await sb.auth.signInWithOtp({email,options:{emailRedirectTo:window.location.href}}); showToast(error?`Error: ${error.message}`:'Magic link sent.')}
-async function sbRequireUser(){const {data:{user}}=await sb.auth.getUser(); if(!user){showToast('Please sign in.'); throw new Error('no-user')} return user}
-document.getElementById('sbSave').onclick=async()=>{try{const u=await sbRequireUser(); const payload=load(); const {error}=await sb.from('tracker_data').upsert({user_id:u.id,data:payload},{onConflict:'user_id'}); showToast(error?`Save failed: ${error.message}`:'Saved to cloud.') }catch{}}
-document.getElementById('sbLoad').onclick=async()=>{try{const u=await sbRequireUser(); const {data,error}=await sb.from('tracker_data').select('data').eq('user_id',u.id).single(); if(error&&error.code!=='PGRST116'){showToast(`Load failed: ${error.message}`);return} const remote=data?.data||{}; save(mergeData(load(),remote)); renderAll(); showToast('Loaded & merged from cloud.')}catch{}}
-document.getElementById('sbSignOut').onclick=async()=>{await sb.auth.signOut(); await refreshSbAuthUI(); showToast('Signed out.')}
-sb.auth.onAuthStateChange(()=>refreshSbAuthUI());
-
-function mergeData(a={},b={}){const out=JSON.parse(JSON.stringify(a||{})); for(const k of Object.keys(b||{})){ if(!out[k]) out[k]={daily:{},active:(b[k].active!==false)}; const bd=b[k].daily||{}; for(const d of Object.keys(bd)){const r=bd[d]||{clicked:false,farmed:false}; const l=(out[k].daily&&out[k].daily[d])||{clicked:false,farmed:false}; out[k].daily[d]={clicked:!!(l.clicked||r.clicked),farmed:!!(l.farmed||r.farmed)}} if(typeof b[k].active!=='undefined') out[k].active=!!b[k].active } return out}
-
-/* ===== Start ===== */
-function init(){ renderAll(); refreshSbAuthUI() }
-init();
+/* -------------------- Init -------------------- */
+renderAll();
 </script>
 </body>
 </html>
